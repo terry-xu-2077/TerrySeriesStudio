@@ -174,7 +174,6 @@
       node.classList.toggle("active",selected);
       node.setAttribute("aria-selected",String(selected));
     });
-    all("[data-go]").forEach(function(node){node.classList.toggle("active",node.dataset.go===tab);});
     elem("toolbarScope").textContent=labelForTab(tab);
     elem("toolbarDoc").textContent=tab==="script"?"草稿 / 第 1 集":tab==="storyboard"?"镜头列表 / 第 1 集":"本地生成 / 示意";
     elem("docTitle").textContent=tab==="script"?"第一集 · 回收日":tab==="storyboard"?"第一集 · 镜头设计":"视频生成";
@@ -662,7 +661,6 @@
   /* topbar, stage and editor actions */
   query(".episode.active").addEventListener("click",function(){changeTab("script");});
   all("[data-tab]").forEach(function(btn){btn.addEventListener("click",function(){changeTab(btn.dataset.tab);});});
-  all("[data-go]").forEach(function(btn){btn.addEventListener("click",function(){changeTab(btn.dataset.go);});});
   all("[data-filter]").forEach(function(btn){btn.addEventListener("click",function(){reviewFilter=btn.dataset.filter;paintComments();});});
   elem("aiReviewButton").addEventListener("click",runMockReview);
   elem("approveButton").addEventListener("click",approveCurrent);
