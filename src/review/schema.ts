@@ -111,7 +111,7 @@ export function parseReviewResponse(raw: unknown): ReviewResponse {
       throw new Error("Invalid review comment");
     }
   }
-  return raw as ReviewResponse;
+  return raw as unknown as ReviewResponse;
 }
 
 /**
