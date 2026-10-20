@@ -66,10 +66,12 @@
   var currentSelection=null,composerSelection=null;
   var focusedEdit=null,selectedCommentId=null,reviewFilter="all";
   var reviewing=false,saveTimer=null,toastTimer=null;
+  var hoveredCommentId=null,relationFramePending=false;
   var editor=elem("editorBlocks");
   var commentsView=elem("reviewItems");
   var composer=elem("commentComposer");
   var selectionToolbar=elem("selectionToolbar");
+  var reviewRelations=elem("reviewRelations");
 
   function documentTab(){ return state.activeTab==="generate"?"storyboard":state.activeTab; }
   function currentBlocks(){ return state.documents[documentTab()]; }
@@ -148,7 +150,6 @@
     currentSelection=null;
     closeComposer();
     state.activeTab=tab;
-    setReviewOpen(false);
     selectedCommentId=null;
     reviewFilter="all";
     paintAll();
@@ -159,8 +160,8 @@
     var visible=!!open && state.activeTab!=="generate";
     elem("reviewSidebar").classList.toggle("open",visible);
     elem("openReview").setAttribute("aria-expanded",String(visible));
-    elem("openReview").setAttribute("aria-label",visible?"关闭审阅浮窗":"打开审阅浮窗");
-    if(!visible && !composer.hidden)closeComposer();
+    elem("openReview").setAttribute("aria-label",visible?"收起右侧批改结果":"展开右侧批改结果");
+    scheduleRelations();
   }
   function paintNavigation(){
     var tab=state.activeTab;
@@ -190,6 +191,7 @@
     elem("approveButton").disabled=tab==="generate";
     elem("approveButton").hidden=tab==="generate";
     elem("openReview").disabled=tab==="generate";
+    elem("openReview").setAttribute("aria-label","展开右侧批改结果");
     elem("workArea").classList.toggle("is-generation",tab==="generate");
     elem("pendingCount").textContent=String(pendingCount());
     elem("reviewMobileCount").textContent=String(currentComments().length);
@@ -306,7 +308,7 @@
   function scheduleHighlights(){
     if(highlightQueued)return;
     highlightQueued=true;
-    requestAnimationFrame(function(){highlightQueued=false;paintHighlights();});
+    requestAnimationFrame(function(){highlightQueued=false;paintHighlights();scheduleRelations();});
   }
   function paintHighlights(){
     all(".doc-block.is-related").forEach(function(n){n.classList.remove("is-related");});
@@ -346,6 +348,57 @@
     }
   }
 
+  function scheduleRelations(){
+    if(relationFramePending)return;
+    relationFramePending=true;
+    requestAnimationFrame(function(){relationFramePending=false;paintRelations();});
+  }
+  function paintRelations(){
+    reviewRelations.replaceChildren();
+    var sidebar=elem("reviewSidebar"),work=elem("workArea");
+    if(!sidebar.classList.contains("open")||state.activeTab==="generate"||window.innerWidth<=850)return;
+    var workRect=work.getBoundingClientRect(),pageRect=elem("pageScroller").getBoundingClientRect();
+    var listRect=commentsView.getBoundingClientRect(),panelRect=sidebar.getBoundingClientRect();
+    if(workRect.width<=0||workRect.height<=0)return;
+    reviewRelations.setAttribute("viewBox","0 0 "+workRect.width+" "+workRect.height);
+    var sourceXLimit=panelRect.left-22;
+    var matching=currentComments().filter(function(comment){return comment.status==="pending";});
+    matching.forEach(function(comment){
+      var card=Array.from(commentsView.querySelectorAll(".comment-card")).find(function(el){return el.dataset.commentId===comment.id;});
+      if(!card)return;
+      var anchor=getUniqueAnchor(comment);
+      if(anchor.state!=="ok")return;
+      var block=query('.block-editable[data-block-id="'+comment.block_id+'"]');
+      if(!block)return;
+      var range=buildTextRange(block,anchor.start,anchor.end);
+      if(!range)return;
+      var rects=range.getClientRects();
+      if(!rects.length)return;
+      var source=rects[rects.length-1],cardRect=card.getBoundingClientRect();
+      var sourceY=source.top+source.height/2,cardY=cardRect.top+Math.min(24,cardRect.height/2);
+      // Do not draw lines from scrolled-away text or cards outside their own viewport.
+      if(sourceY<pageRect.top+3||sourceY>pageRect.bottom-3 ||
+         cardY<listRect.top+3||cardY>listRect.bottom-3)return;
+      var x1=Math.min(source.right+5,sourceXLimit),x2=panelRect.left+4;
+      var y1=sourceY-workRect.top,y2=cardY-workRect.top;
+      x1-=workRect.left;x2-=workRect.left;
+      if(x1>=x2||x1<0)return;
+      var span=x2-x1,curve=Math.max(18,span*.46);
+      var active=comment.id===selectedCommentId||comment.id===hoveredCommentId;
+      var path=document.createElementNS("http://www.w3.org/2000/svg","path");
+      path.setAttribute("class","relation-path"+(active?" active":""));
+      path.setAttribute("d","M "+x1+" "+y1+" C "+(x1+curve)+" "+y1+", "+(x2-curve)+" "+y2+", "+x2+" "+y2);
+      reviewRelations.appendChild(path);
+      [{x:x1,y:y1},{x:x2,y:y2}].forEach(function(point){
+        var dot=document.createElementNS("http://www.w3.org/2000/svg","circle");
+        dot.setAttribute("cx",String(point.x));dot.setAttribute("cy",String(point.y));
+        dot.setAttribute("r",active?"3.2":"2.1");
+        dot.setAttribute("class","relation-dot"+(active?" active":""));
+        reviewRelations.appendChild(dot);
+      });
+    });
+  }
+
   function paintComments(){
     var comments=currentComments();
     elem("reviewCount").textContent=comments.length
@@ -362,7 +415,10 @@
       banner.textContent="审查摘要 · "+summary;
       commentsView.appendChild(banner);
     }
-    var visible=comments.filter(function(c){return reviewFilter==="all"||c.status==="pending";});
+    var order=new Map(currentBlocks().map(function(block,index){return [block.id,index];}));
+    var visible=comments.filter(function(c){return reviewFilter==="all"||c.status==="pending";}).slice().sort(function(a,b){
+      return (order.has(a.block_id)?order.get(a.block_id):99999)-(order.has(b.block_id)?order.get(b.block_id):99999);
+    });
     if(!visible.length){
       commentsView.innerHTML+='<div class="empty-review"><div class="empty-art"><span></span><span></span></div>'
         +'<h3>'+(reviewFilter==="pending"?"没有待处理的批注":"从一次批注开始")+'</h3>'
@@ -397,6 +453,8 @@
           +'<button type="button" class="ignore" data-comment-action="ignore">忽略</button></div>';
       }else actions='<div class="comment-status">'+(c.status==="accepted"?"✓ 已接受修改":c.status==="resolved"?"✓ 已处理":"已忽略")+' · <button type="button" class="text-action" data-comment-action="restore">恢复待处理</button></div>';
       card.innerHTML=head+anchorNote+quote+copy+suggestion+actions;
+      card.addEventListener("mouseenter",function(){hoveredCommentId=c.id;scheduleRelations();});
+      card.addEventListener("mouseleave",function(){hoveredCommentId=null;scheduleRelations();});
       card.addEventListener("click",function(event){
         if(event.target.closest("[data-comment-action]"))return;
         activateComment(c.id);
@@ -489,7 +547,14 @@
     composer.hidden=false;
     elem("composerQuote").textContent="“"+sel.quote+"”";
     elem("commentInput").value="";
-    setReviewOpen(true);
+    var rect=sel.rect;
+    var width=Math.min(314,window.innerWidth-24);
+    var height=235;
+    var left=Math.max(12,Math.min(window.innerWidth-width-12,rect.left));
+    var below=rect.bottom+12;
+    var top=below+height<window.innerHeight-8?below:Math.max(12,rect.top-height-12);
+    composer.style.left=left+"px";
+    composer.style.top=top+"px";
     elem("commentInput").focus();
     scheduleHighlights();
   }
@@ -514,6 +579,7 @@
     currentComments().push(c);
     selectedCommentId=c.id;
     closeComposer();
+    setReviewOpen(true);
     paintComments();
     saveSoon();
     notify("批注已添加");
@@ -586,8 +652,11 @@
     paintNavigation();
     paintDocument();
     paintComments();
+    // Existing review results remain docked at the right on desktop, including after reload.
+    setReviewOpen(state.activeTab!=="generate"&&currentComments().length>0&&window.innerWidth>850);
     updateUndoButtons();
     scheduleHighlights();
+    scheduleRelations();
   }
 
   /* topbar, stage and editor actions */
@@ -613,10 +682,10 @@
   });
   elem("closeReview").addEventListener("click",function(){setReviewOpen(false);});
   document.addEventListener("pointerdown",function(event){
-    if(!elem("reviewSidebar").classList.contains("open"))return;
-    if(event.target.closest("#reviewSidebar, #openReview, #selectionToolbar"))return;
-    // Floating review tools never steal persistent width from the document.
-    setReviewOpen(false);
+    // The review results are persistent. Only the add-comment composer closes outside.
+    if(composer.hidden)return;
+    if(event.target.closest("#commentComposer, #selectionToolbar"))return;
+    closeComposer();
   });
   elem("resetDemo").addEventListener("click",function(){
     if(!window.confirm("将清除当前浏览器里保存的 Demo 编辑、批注与修订内容，确认重置吗？"))return;
@@ -638,8 +707,12 @@
   document.addEventListener("keyup",function(e){
     if(e.target.closest && e.target.closest(".block-editable"))window.setTimeout(captureSelection,0);
   });
+  elem("pageScroller").addEventListener("scroll",scheduleRelations,{passive:true});
+  commentsView.addEventListener("scroll",scheduleRelations,{passive:true});
+  window.addEventListener("resize",scheduleRelations);
+  if(window.ResizeObserver){new ResizeObserver(scheduleRelations).observe(elem("workArea"));}
   document.addEventListener("keydown",function(e){
-    if(e.key==="Escape"){selectionToolbar.hidden=true;closeAssets();setReviewOpen(false);}
+    if(e.key==="Escape"){selectionToolbar.hidden=true;closeAssets();if(!composer.hidden)closeComposer();}
     if((e.ctrlKey||e.metaKey) && !e.altKey){
       var tag=(e.target.tagName||"").toLowerCase();
       var editable=!!e.target.closest("[contenteditable='true']")||tag==="textarea";
