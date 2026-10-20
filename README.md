@@ -23,6 +23,10 @@
 
 在基础链路验证以前，不追求多用户、插件市场、商业 SaaS 或复杂的通用自动化平台。
 
+## 产品原则
+
+**本质是带 AI 批改/改写能力的剧本和分镜文本编辑器**；ComfyUI 生成、资产管理与片段衔接只为编辑内容服务。优先参考 TerryShotMill 的 Terry分镜表真实界面，不另行发明复杂生产控制台。仅保留必要的保存保护、AI 不覆盖原文与生成依赖校验测试；不堆积测试报告和后台层级。
+
 ## 三个主工作区
 
 1. **剧本**：编辑、AI 独立审查、定向改写、版本对比、人工批准。
@@ -33,7 +37,7 @@
 
 ## 参考项目（只作为技术与交互参考）
 
-- [TerryShotMill](https://github.com/terry-xu-2077/TerryShotMill)：项目资产、Task/Job/Result、Provider 抽象、持久化队列、ComfyUI Bridge 和生成结果管理。
+- [TerryShotMill](https://github.com/terry-xu-2077/TerryShotMill/tree/codex/storyboard-sheet-ui-20261020)：优先参考 **Terry分镜表分支**的表格式文本/提示词编辑、自动保存、@资产引用、多分镜表、导入导出与结果审片交互；旧后端和 SQL 运行索引不移植。
 - [TerryDirector](https://github.com/terry-xu-2077/TerryDirector)：导演时间线、尾帧参考/续接、重叠上下文、逐片段输出、断点恢复、局部重跑。
 
 不直接搬运旧仓库的整套业务层或 UI。先定义新产品的数据契约，再按需复用经过验证的能力与设计。
@@ -41,8 +45,8 @@
 ## 技术方向（待实现）
 
 - **界面**：React + TypeScript，优先本地浏览器访问。
-- **本地控制服务**：Node.js + TypeScript，负责云端 AI API、安全保存凭据、项目持久化及无人值守任务调度；**不另建 Python 后端或 Python 环境**。
-- **数据**：SQLite（元数据、审核记录、快照与队列）；大媒体保存在文件系统。
+- **本地控制服务**：Node.js + TypeScript，只负责云端 AI API、凭据、本地文件读写与 ComfyUI 任务衔接；**不另建 Python 后端，也不引入数据库**。
+- **数据**：工程文件优先，剧本用 Markdown、分镜/修订/任务用 JSON，资产与生成视频保持普通文件；第一版不使用 SQLite。
 - **AI**：可配置 API Provider / Model Profile；剧本创作、独立审稿和分镜导演共用统一调用与用量记录。
 - **ComfyUI**：HTTP 提交任务 + WebSocket / 历史接口追踪结果；工作流本体和 GPU 推理仍由独立的 ComfyUI 管理。
 - **环境**：Windows 本机优先；启动轻量 Node.js 常驻服务、浏览器访问；ComfyUI 独立运行，互不接管启停。不要求第一版封装 Tauri/Electron 桌面程序。
