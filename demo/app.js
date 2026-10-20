@@ -422,7 +422,7 @@
       commentsView.innerHTML+='<div class="empty-review"><div class="empty-art"><span></span><span></span></div>'
         +'<h3>'+(reviewFilter==="pending"?"没有待处理的批注":"从一次批注开始")+'</h3>'
         +'<p>'+(reviewFilter==="pending"?"当前建议已处理完毕。":"选中正文中的一句话添加批注，或让 AI 模拟审查这份文档。")+'</p>'
-        +'<button class="empty-cta" type="button" id="reviewEmptyAction">'+(reviewFilter==="pending"?"查看全部":"✦ 体验 AI 审查")+'</button></div>';
+        +'<button class="empty-cta" type="button" id="reviewEmptyAction">'+(reviewFilter==="pending"?"查看全部":"✦ 体验 AI 批改")+'</button></div>';
       elem("reviewEmptyAction").addEventListener("click",function(){if(reviewFilter==="pending"){reviewFilter="all";paintComments();}else runMockReview();});
       scheduleHighlights();
       return;
@@ -433,25 +433,35 @@
       card.className="comment-card"+(c.id===selectedCommentId?" selected":"")+(c.status!=="pending"?" resolved":"");
       card.dataset.commentId=c.id;
       card.tabIndex=0;
-      card.setAttribute("aria-label",(c.author==="AI"?"AI":"人工")+"批注："+c.comment);
+      card.setAttribute("aria-label",(c.author==="AI"?"AI 批改结果":"人工批注")+"："+c.comment);
       var avatar=c.author==="AI"?"✦":"T";
-      var tag=c.severity==="important"?"需关注":"建议";
+      var tag=c.severity==="important"?"需关注":"可优化";
       var head='<div class="card-heading"><div class="review-avatar '+(c.author==="AI"?"":"human")+'">'+avatar+'</div>'
-        +'<span class="card-author">'+(c.author==="AI"?"AI 审查":"我的批注")+'</span>'
+        +'<span class="card-author">'+(c.author==="AI"?"AI 批改结果":"我的批注")+'</span>'
         +(c.author==="AI"?'<span class="card-severity '+(c.severity==="important"?"":"suggestion")+'">'+tag+'</span>':'')+'</div>';
       var anchorNote=anchor.state==="ok"?"":'<div class="orphan-note">原文位置'+(anchor.state==="ambiguous"?"存在重复，无法确定":anchor.state==="missing"?"不存在":"已变化，请重新定位")+'；不会自动修改文字。</div>';
       var quote='<div class="comment-quote">“'+escapeHTML(c.quote)+'”</div>';
       var copy='<p class="comment-copy">'+escapeHTML(c.comment)+'</p>';
-      var suggestion=(c.replacement!==undefined && c.replacement!=="")
-        ?'<div class="replacement-label">建议修改</div><div class="replacement-text">'+escapeHTML(c.replacement)+'</div>'
-        :"";
-      var actions="";
+      var hasReplacement=c.replacement!==undefined && c.replacement!=="";
+      var decision="",archive="",actions="";
       if(c.status==="pending"){
-        actions='<div class="comment-actions">'
-          +(c.replacement!==undefined?'<button type="button" data-comment-action="accept" '+(anchor.state!=="ok"?"disabled":"")+'>✓ 接受</button>':'<button type="button" class="resolve" data-comment-action="resolve">✓ 标记已处理</button>')
-          +'<button type="button" class="ignore" data-comment-action="ignore">忽略</button></div>';
-      }else actions='<div class="comment-status">'+(c.status==="accepted"?"✓ 已接受修改":c.status==="resolved"?"✓ 已处理":"已忽略")+' · <button type="button" class="text-action" data-comment-action="restore">恢复待处理</button></div>';
-      card.innerHTML=head+anchorNote+quote+copy+suggestion+actions;
+        decision='<section class="review-decision" aria-label="待人工确认的批改内容">'
+          +'<div class="replacement-label"><span class="decision-dot" aria-hidden="true"></span>'
+          +(hasReplacement?"待确认修改":"待处理批改")+'</div>'
+          +(hasReplacement
+            ?'<div class="replacement-text">'+escapeHTML(c.replacement)+'</div>'
+            :'<div class="decision-hint">请确认这条批改意见是否已处理。</div>')
+          +'<div class="comment-actions">'
+          +(hasReplacement
+            ?'<button type="button" class="accept" data-comment-action="accept" '+(anchor.state!=="ok"?"disabled":"")+'>✓ 接受修改</button>'
+            :'<button type="button" class="accept resolve" data-comment-action="resolve">✓ 标记已处理</button>')
+          +'<button type="button" class="ignore" data-comment-action="ignore">忽略</button></div></section>';
+      }else{
+        if(hasReplacement)archive='<div class="replacement-archive"><div class="replacement-label">原候选修改</div><div class="replacement-text">'+escapeHTML(c.replacement)+'</div></div>';
+        actions='<div class="comment-status">'+(c.status==="accepted"?"✓ 已接受修改":c.status==="resolved"?"✓ 已处理":"已忽略")
+          +' · <button type="button" class="text-action" data-comment-action="restore">恢复待处理</button></div>';
+      }
+      card.innerHTML=head+anchorNote+quote+copy+decision+archive+actions;
       card.addEventListener("mouseenter",function(){hoveredCommentId=c.id;scheduleRelations();});
       card.addEventListener("mouseleave",function(){hoveredCommentId=null;scheduleRelations();});
       card.addEventListener("click",function(event){
@@ -603,11 +613,11 @@
     elem("aiReviewButton").disabled=true;
     elem("aiReviewLabel").textContent="审查中…";
     selectionToolbar.hidden=true;
-    notify("正在模拟 AI 审查（不会调用付费 API）");
+    notify("正在模拟 AI 批改（不会调用付费 API）");
     window.setTimeout(function(){
       reviewing=false;
       elem("aiReviewButton").disabled=false;
-      elem("aiReviewLabel").textContent="AI 审查全文";
+      elem("aiReviewLabel").textContent="AI 批改全文";
       if(documentTab()!==tab || currentRevision()!==revision){
         notify("审查期间文档发生变化，结果未应用；可重新审查");
         return;
@@ -622,7 +632,7 @@
           id:newId(),author:"AI",status:"pending",source_revision:revision
         }));
       });
-      if(!addition.length){notify("没有新增的模拟审查意见（修改示例正文或重置后可重新体验）");return;}
+      if(!addition.length){notify("没有新增的模拟批改结果（修改示例正文或重置后可重新体验）");return;}
       recordBefore();
       state.comments[tab].push.apply(state.comments[tab],addition);
       state.summaries[tab]=tab==="script"
