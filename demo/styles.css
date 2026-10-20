@@ -285,3 +285,61 @@
   .app-shell.focus-layout .workspace .review-sidebar.open,
   .app-shell:not(.focus-layout) .workspace .review-sidebar.open{top:54px}
 }
+
+
+/* ── Unified workspace navigation: a single switcher at the top center ──
+   Project sidebar now shows projects / episodes ONLY, not workspace tabs. */
+.topbar{position:relative}
+.topbar-stages{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  display:flex;align-items:stretch;justify-content:center;gap:27px;
+  height:100%;z-index:2;white-space:nowrap;
+}
+.topbar-stages .stage-tab{
+  height:100%;font-size:12px;padding:2px 9px 0;border-bottom:2px solid transparent;
+  font-weight:600;color:#888c9f;
+}
+.topbar-stages .stage-tab:hover{color:#6669b4}
+.topbar-stages .stage-tab.active{
+  color:#5056a4;border-bottom-color:#666ab9;background:transparent;
+}
+.topbar-stages .stage-tab span{font-size:10px;color:#b2b4c4}
+.topbar-stages .stage-tab.active span{color:#7c81c7}
+.app-shell.focus-layout .topbar-stages .stage-tab{font-size:12px;color:#888b9d;font-weight:580}
+.app-shell.focus-layout .topbar-stages .stage-tab.active{color:#4e539e;font-weight:720}
+.app-shell.focus-layout .topbar-stages .stage-tab.active span{color:#7578c0}
+.editing-toolbar>.saved-state{margin-left:auto;font-size:10px;color:#a2a5b2;flex-shrink:0;padding-right:11px}
+@media(max-width:1320px){
+  .topbar-location,.demo-pill,.reset-control{display:none}
+  .app-shell .topbar-location,.app-shell .demo-pill,.app-shell .reset-control{display:none}
+}
+@media(max-width:990px){
+  .brand-name{display:none}
+  .topbar-stages{gap:15px}
+  .topbar-stages .stage-tab{padding-left:7px;padding-right:7px}
+  .app-shell.focus-layout .editing-toolbar>.saved-state{display:none}
+}
+@media(max-width:760px){
+  /* A single topmost header, divided into tool row + centered workspace row. */
+  .topbar,.app-shell.focus-layout .topbar{
+    height:93px;min-height:93px;padding-bottom:39px;
+    align-items:center;
+  }
+  .topbar-stages{
+    top:auto;bottom:0;height:39px;width:100%;
+    gap:25px;border-top:1px solid #f1f1f5;
+  }
+  .topbar-stages .stage-tab{font-size:12px}
+  .app-shell.focus-layout .topbar-stages .stage-tab{font-size:12px}
+  .workspace .review-sidebar.open,
+  .app-shell.focus-layout .workspace .review-sidebar.open,
+  .app-shell:not(.focus-layout) .workspace .review-sidebar.open{top:93px}
+  .editing-toolbar>.saved-state{display:none}
+}
+@media(max-width:410px){
+  .topbar-stages{gap:12px}
+  .topbar-stages .stage-tab{padding-left:5px;padding-right:5px}
+  .app-shell .topbar .brand-name{display:none}
+  .app-shell .topbar .topbar-btn#openAssets{padding:5px 3px}
+  .app-shell .topbar .layout-switch{max-width:125px;overflow:hidden}
+}
