@@ -159,7 +159,7 @@
     var visible=!!open && state.activeTab!=="generate";
     elem("reviewSidebar").classList.toggle("open",visible);
     elem("openReview").setAttribute("aria-expanded",String(visible));
-    elem("openReview").setAttribute("aria-label",visible?"收起批注":"显示批注");
+    elem("openReview").setAttribute("aria-label",visible?"关闭审阅浮窗":"打开审阅浮窗");
     if(!visible && !composer.hidden)closeComposer();
   }
   function paintNavigation(){
@@ -188,7 +188,7 @@
     elem("approveLabel").textContent=state.approved[documentTab()]?"已批准":"批准本稿";
     elem("aiReviewButton").disabled=tab==="generate"||reviewing;
     elem("approveButton").disabled=tab==="generate";
-    elem("addCommentButton").disabled=tab==="generate";
+    elem("approveButton").hidden=tab==="generate";
     elem("openReview").disabled=tab==="generate";
     elem("workArea").classList.toggle("is-generation",tab==="generate");
     elem("pendingCount").textContent=String(pendingCount());
@@ -473,7 +473,7 @@
     if(!next){selectionToolbar.hidden=true;return;}
     currentSelection=next;
     var rect=next.rect;
-    var width=237;
+    var width=138;
     selectionToolbar.style.left=Math.max(10,Math.min(window.innerWidth-width-10,rect.left+rect.width/2-width/2))+"px";
     selectionToolbar.style.top=Math.max(12,rect.top-50)+"px";
     selectionToolbar.hidden=false;
@@ -529,36 +529,6 @@
     {block_id:"shot-03",quote:"镜头没有交代它与特瑞的相对位置",comment:"角色进入方向和双方空间关系不清楚，后续对话可能出现视线不匹配。建议先建立明确位置。",replacement:"镜头保留小七与特瑞的相对位置",severity:"important"},
     {block_id:"shot-05",quote:"画面与上一镜头之间的动作衔接尚不明确。",comment:"这属于剪接叙事与生成参考的交叉问题。建议说明是独立转场还是需要上一片段尾帧；不要仅凭镜头排列推断续接。",severity:"suggestion"}
   ];
-
-  function reviewSelection(){
-    var sel=currentSelection || selectionFromWindow();
-    if(!sel){notify("请先选择正文文字");return;}
-    var block=getBlock(sel.blockId);
-    if(!block || block.text.slice(sel.start,sel.end)!==sel.quote){notify("所选文字已变化，请重新选择");return;}
-    var candidates=documentTab()==="script"?scriptSuggestions:storyboardSuggestions;
-    var known=currentComments().some(function(c){return c.block_id===sel.blockId && c.quote===sel.quote;});
-    if(known){notify("选区已有批注，请查看右侧");setReviewOpen(true);return;}
-    var preset=candidates.find(function(c){return c.block_id===sel.blockId && sel.quote.includes(c.quote);});
-    var c=preset ? Object.assign({},preset) : {
-      block_id:sel.blockId,
-      quote:sel.quote,
-      comment:"这是一条针对选区的模拟 AI 批注。正式版本会结合角色和场景设定给出具体审稿意见。",
-      severity:"suggestion"
-    };
-    if(preset && preset.quote!==sel.quote){
-      c.quote=sel.quote;
-      delete c.replacement;
-    }
-    recordBefore();
-    Object.assign(c,{id:newId(),author:"AI",status:"pending",source_revision:currentRevision()});
-    currentComments().push(c);
-    selectedCommentId=c.id;
-    selectionToolbar.hidden=true;
-    setReviewOpen(true);
-    paintComments();
-    saveSoon();
-    notify("已添加针对选区的模拟 AI 批注");
-  }
 
   function runMockReview(){
     if(reviewing)return;
@@ -627,9 +597,7 @@
   all("[data-filter]").forEach(function(btn){btn.addEventListener("click",function(){reviewFilter=btn.dataset.filter;paintComments();});});
   elem("aiReviewButton").addEventListener("click",runMockReview);
   elem("approveButton").addEventListener("click",approveCurrent);
-  elem("addCommentButton").addEventListener("click",startComment);
   elem("selectionComment").addEventListener("click",startComment);
-  elem("selectionRewrite").addEventListener("click",reviewSelection);
   elem("openReview").addEventListener("click",function(){setReviewOpen(!elem("reviewSidebar").classList.contains("open"));});
   elem("toggleFocus").addEventListener("click",function(){
     state.layout=state.layout==="full"?"focus":"full";
@@ -644,6 +612,12 @@
     if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();submitComment();}
   });
   elem("closeReview").addEventListener("click",function(){setReviewOpen(false);});
+  document.addEventListener("pointerdown",function(event){
+    if(!elem("reviewSidebar").classList.contains("open"))return;
+    if(event.target.closest("#reviewSidebar, #openReview, #selectionToolbar"))return;
+    // Floating review tools never steal persistent width from the document.
+    setReviewOpen(false);
+  });
   elem("resetDemo").addEventListener("click",function(){
     if(!window.confirm("将清除当前浏览器里保存的 Demo 编辑、批注与修订内容，确认重置吗？"))return;
     localStorage.removeItem(STORAGE_KEY);
