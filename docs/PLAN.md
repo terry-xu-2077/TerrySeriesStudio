@@ -215,6 +215,8 @@ Capability/Profile 负责声明模式及限制，不支持时在 UI 中禁用并
 
 交付：Word 式正文编辑、原位文字选区批注、右侧 AI 审查卡片、建议改写的逐条接受/忽略、自动保存/撤销、可配置云端 API、后台有限轮审查与候选修订、人工批准，以及角色/场景设定作为可追溯的 AI 上下文；不开发单独的审核管理页面。
 
+剧本审查使用 [script-review Skill](../skills/script-review/SKILL.md)，分镜审查使用 [storyboard-review Skill](../skills/storyboard-review/SKILL.md)，两者共享 [Terry Review v1 输出协议](../src/review/schema.ts)，不写两份互相冲突的 JSON 格式；Skill 文件和协议目前只是基础文件，API 与 UI 尚未接入。
+
 验收：EP01 选中文字添加人工批注、AI 意见准确定位、逐条接受/忽略修订、保存重开不丢批注；旧稿 AI 结果不会贴错段落；用户批准指定版本后才能进入正式分镜，后台调用可追溯。
 
 ### M2 · 分镜 AI 闭环与生成计划
