@@ -178,6 +178,7 @@
     elem("workArea").classList.toggle("is-generation",tab==="generate");
     elem("reviewSidebar").classList.remove("open");
     elem("pendingCount").textContent=String(pendingCount());
+    elem("reviewMobileCount").textContent=String(currentComments().length);
     updateUndoButtons();
   }
   function paintDocument(){
@@ -337,6 +338,7 @@
       ? comments.length+" 条批注 · "+pendingCount()+" 条待处理"
       :"当前没有批注";
     elem("pendingCount").textContent=String(pendingCount());
+    elem("reviewMobileCount").textContent=String(comments.length);
     all(".filter").forEach(function(button){button.classList.toggle("active",button.dataset.filter===reviewFilter);});
     commentsView.replaceChildren();
     var summary=state.summaries[documentTab()];
@@ -514,6 +516,36 @@
     {block_id:"shot-05",quote:"画面与上一镜头之间的动作衔接尚不明确。",comment:"这属于剪接叙事与生成参考的交叉问题。建议说明是独立转场还是需要上一片段尾帧；不要仅凭镜头排列推断续接。",severity:"suggestion"}
   ];
 
+  function reviewSelection(){
+    var sel=currentSelection || selectionFromWindow();
+    if(!sel){notify("请先选择正文文字");return;}
+    var block=getBlock(sel.blockId);
+    if(!block || block.text.slice(sel.start,sel.end)!==sel.quote){notify("所选文字已变化，请重新选择");return;}
+    var candidates=documentTab()==="script"?scriptSuggestions:storyboardSuggestions;
+    var known=currentComments().some(function(c){return c.block_id===sel.blockId && c.quote===sel.quote;});
+    if(known){notify("选区已有批注，请查看右侧");elem("reviewSidebar").classList.add("open");return;}
+    var preset=candidates.find(function(c){return c.block_id===sel.blockId && sel.quote.includes(c.quote);});
+    var c=preset ? Object.assign({},preset) : {
+      block_id:sel.blockId,
+      quote:sel.quote,
+      comment:"这是一条针对选区的模拟 AI 批注。正式版本会结合角色和场景设定给出具体审稿意见。",
+      severity:"suggestion"
+    };
+    if(preset && preset.quote!==sel.quote){
+      c.quote=sel.quote;
+      delete c.replacement;
+    }
+    recordBefore();
+    Object.assign(c,{id:newId(),author:"AI",status:"pending",source_revision:currentRevision()});
+    currentComments().push(c);
+    selectedCommentId=c.id;
+    selectionToolbar.hidden=true;
+    elem("reviewSidebar").classList.add("open");
+    paintComments();
+    saveSoon();
+    notify("已添加针对选区的模拟 AI 批注");
+  }
+
   function runMockReview(){
     if(reviewing)return;
     if(state.activeTab==="generate"){notify("生成阶段暂不支持文本审查");return;}
@@ -583,11 +615,8 @@
   elem("approveButton").addEventListener("click",approveCurrent);
   elem("addCommentButton").addEventListener("click",startComment);
   elem("selectionComment").addEventListener("click",startComment);
-  elem("selectionRewrite").addEventListener("click",function(){
-    selectionToolbar.hidden=true;
-    if(!currentSelection){notify("请先选中正文");return;}
-    runMockReview();
-  });
+  elem("selectionRewrite").addEventListener("click",reviewSelection);
+  elem("openReview").addEventListener("click",function(){elem("reviewSidebar").classList.toggle("open");});
   elem("undoButton").addEventListener("click",undo);
   elem("redoButton").addEventListener("click",redo);
   elem("submitComment").addEventListener("click",submitComment);
