@@ -172,18 +172,20 @@ Capability/Profile 负责声明模式及限制，不支持时在 UI 中禁用并
 - 剧本文字及 diff/批注、镜头卡片与 Inspector、只读片段接缝预览、任务运行中心。
 - 禁止重复维护一套独立于后端的创作真相。
 
-**Core API（FastAPI + SQLite）**
+**Core Service（Node.js + TypeScript + SQLite）**
 - 领域对象、版本、审批、依赖验证、执行快照、持久化任务、结果管理。
 - 写操作具备版本冲突检查；提交、重试支持幂等键；刷新浏览器和服务重启不能丢任务。
 - 只在此层判定“能否进入下一阶段”，不能由前端按钮或 AI 模型直接决定。
+- **本地轻量常驻进程不可省略为纯网页**：关闭网页后仍须可靠保存剧本版本、调度上下文依赖任务、继续 AI 修订与 ComfyUI 状态对账；避免把付费 API Key 暴露给浏览器。业务 API 和调度器都用 TypeScript 实现，无需独立 Python 安装。
+- 本地默认仅监听 `127.0.0.1`；若未来允许手机或远程访问，须另做身份验证、来源限制与安全配置。
 
 **AI Provider Adapter**
-- 支持可配置端点、Key、模型、超时及参数，首选 OpenAI-compatible 接口，厂商差异通过 Adapter 隔离。
+- Node.js 服务端调用云端 API，支持可配置端点、Key、模型、超时及参数，首选 OpenAI-compatible 接口，厂商差异通过 Adapter 隔离。
 - 同一 Provider 可配置编剧、审查、分镜等多个角色，**逻辑角色分离不意味着必须调用不同模型**。
 - 输入按项目设定 + 当前场景/上下文 + 规则快照构成；响应首先做 schema 校验，再进入内容审查，记录每次调用的耗时与用量。
 
 **ComfyUI Adapter**
-- 不复制模型、不接管 ComfyUI 的启动/关闭；通过 API 调用已有工作流。
+- ComfyUI 是独立的 Python/GPU 生成引擎，使用其**现有 Python 环境**；TerrySeriesStudio 不运行第二套 Python，也不复制模型、不接管 ComfyUI 的启动/关闭。通过 HTTP `/prompt`、`/history`、`/queue` 和 WebSocket `/ws` 等接口调用已有工作流。
 - 工作流输入槽位明确标记/映射，支持导入 Profile、检查参数和实际媒体是否送达。
 - 负责队列、状态对账、生成输入与结果路径，处理上下文媒体引用；不自行实现 H3 采样或视频后期。
 
