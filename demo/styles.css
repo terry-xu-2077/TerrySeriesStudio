@@ -207,3 +207,81 @@
   .app-shell.focus-layout .review-sidebar.open,
   .app-shell:not(.focus-layout) .review-sidebar.open{top:54px}
 }
+
+
+/* ── v3: right-side persistent review + true selection-only composer ──
+   Review cards have a permanent column whenever visible. Only the
+   manual "add comment" entry is a floating popover over the document.
+   SVG relations connect exact text anchors to corresponding cards.
+──────────────────────────────────────────────────────────────────── */
+.workspace{isolation:isolate}
+.workspace .review-relations{
+  position:absolute;inset:0;z-index:7;width:100%;height:100%;
+  pointer-events:none;overflow:visible;
+}
+.review-relations .relation-path{
+  fill:none;stroke:#abaed8;stroke-width:1.45;
+  opacity:.46;stroke-linecap:round;stroke-linejoin:round;
+}
+.review-relations .relation-path.active{stroke:#696db9;stroke-width:2;opacity:.98}
+.review-relations .relation-dot{fill:#8d91cc;opacity:.73}
+.review-relations .relation-dot.active{fill:#676bbb;opacity:1}
+.workspace .review-sidebar.open,
+.app-shell.focus-layout .workspace .review-sidebar.open,
+.app-shell:not(.focus-layout) .workspace .review-sidebar.open{
+  position:relative;top:auto;right:auto;bottom:auto;
+  z-index:8;flex:0 0 340px;
+  width:340px;min-width:0;max-width:none;
+  height:auto;max-height:none;
+  background:#fbfbfd;border:0;border-left:1px solid #e6e7f0;
+  border-radius:0;box-shadow:none;
+}
+.workspace .review-sidebar .review-header,
+.app-shell.focus-layout .workspace .review-sidebar .review-header{padding:26px 19px 15px}
+.workspace .review-sidebar .review-items{overflow:auto;min-height:0;flex:1;padding:16px 15px 24px;scrollbar-width:thin}
+.workspace .review-sidebar .comment-card{background:#fff;box-shadow:0 1px 5px #3940720a}
+.workspace .review-sidebar .comment-card.selected{box-shadow:0 0 0 1px #d8d9f5,0 3px 12px #4346820f}
+.workspace .review-sidebar .review-summary{margin-bottom:15px}
+.workspace .review-sidebar .review-footer{flex-shrink:0;background:#fbfbfd}
+.workspace .review-sidebar .review-filters{background:#fbfbfd}
+.workspace .review-sidebar .review-actions{background:#fbfbfd}
+
+/* The selected source drives the add-comment popover position, not the
+   review column; this surface is the only review-related floating window. */
+.selection-comment-popup{
+  position:fixed;z-index:60;display:block;
+  width:min(314px,calc(100vw - 24px));
+  margin:0;padding:16px;
+  border:1px solid #d5d7eb;border-radius:10px;
+  background:#fff;box-shadow:0 12px 38px #34395624,0 2px 6px #3439560b;
+}
+.selection-comment-popup .composer-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px}
+.selection-comment-popup .composer-quote{max-height:76px;overflow:auto}
+.selection-comment-popup textarea{min-height:88px}
+.selection-comment-popup .composer-actions{justify-content:space-between;gap:8px}
+.composer-shortcut{font-size:10px;color:#a4a7b4;white-space:nowrap}
+.composer-close{border:0;background:transparent;color:#9da0af;font-size:18px;font-weight:400;line-height:1;cursor:pointer}
+.composer-close:hover{color:#575bac}
+@media(max-width:1150px){
+  .workspace .review-sidebar.open,
+  .app-shell.focus-layout .workspace .review-sidebar.open,
+  .app-shell:not(.focus-layout) .workspace .review-sidebar.open{flex-basis:300px;width:300px}
+}
+@media(max-width:850px){
+  .workspace .review-sidebar.open,
+  .app-shell.focus-layout .workspace .review-sidebar.open,
+  .app-shell:not(.focus-layout) .workspace .review-sidebar.open{
+    position:fixed;top:56px;right:0;bottom:0;
+    width:min(350px,100vw);min-width:0;max-width:100vw;
+    height:auto;max-height:none;
+    border-left:1px solid #e3e4ee;
+    border-radius:9px 0 0 0;
+    box-shadow:-6px 0 32px #272b4633;
+  }
+  .workspace .review-relations{display:none}
+}
+@media(max-width:750px){
+  .workspace .review-sidebar.open,
+  .app-shell.focus-layout .workspace .review-sidebar.open,
+  .app-shell:not(.focus-layout) .workspace .review-sidebar.open{top:54px}
+}
