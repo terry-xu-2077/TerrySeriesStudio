@@ -379,7 +379,7 @@
       // Do not draw lines from scrolled-away text or cards outside their own viewport.
       if(sourceY<pageRect.top+3||sourceY>pageRect.bottom-3 ||
          cardY<listRect.top+3||cardY>listRect.bottom-3)return;
-      var x1=Math.min(source.right+5,sourceXLimit),x2=panelRect.left+4;
+      var x1=Math.min(source.right+5,sourceXLimit),x2=cardRect.left+2;
       var y1=sourceY-workRect.top,y2=cardY-workRect.top;
       x1-=workRect.left;x2-=workRect.left;
       if(x1>=x2||x1<0)return;
