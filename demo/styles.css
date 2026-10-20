@@ -114,3 +114,96 @@
   .review-toggle-label{display:none}
   .app-shell.focus-layout .toolbar-actions .icon-button{display:none}
 }
+
+
+/* ── Review is an on-demand floating tool; final approval is a stage action ── */
+.topbar{min-width:0}
+.topbar-spacer{min-width:0}
+.document-finalize{display:flex;align-items:center;gap:13px;margin-left:4px;white-space:nowrap}
+.finalize-divider{height:22px;width:1px;background:#e6e7ee;flex-shrink:0}
+.document-finalize .approve-button{height:33px;background:#f7faf8;border-color:#e0eae3;color:#567b66;padding:0 13px;font-size:12px;font-weight:670;box-shadow:none}
+.document-finalize .approve-button:hover{background:#edf6ef;border-color:#c7dfcf}
+.document-finalize .approve-button.approved{background:#eaf5ee;border-color:#c4dec9;color:#417a57}
+.app-shell.focus-layout .document-finalize .approve-button{background:#f5f9f7;border-color:#e1eae4;color:#5c8070}
+.app-shell.focus-layout .document-finalize .approve-button:hover{background:#eaf5ed;border-color:#c8dfce}
+.workspace{position:relative}
+.review-sidebar.open,
+.app-shell.focus-layout .review-sidebar.open,
+.app-shell:not(.focus-layout) .review-sidebar.open{
+  position:absolute;
+  right:18px;
+  top:12px;
+  bottom:auto;
+  z-index:28;
+  width:344px;
+  min-width:0;
+  max-width:calc(100% - 36px);
+  height:min(660px,calc(100% - 24px));
+  max-height:calc(100% - 24px);
+  overflow:hidden;
+  background:#fff;
+  border:1px solid #e3e4ee;
+  border-radius:12px;
+  box-shadow:0 14px 46px #24294324,0 2px 10px #2429430a;
+}
+.review-header,
+.app-shell.focus-layout .review-sidebar.open .review-header{padding:20px 20px 15px;align-items:flex-start}
+.review-heading{font-size:14px}
+.review-subheading{margin-top:5px}
+.review-actions{padding:0 18px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eff0f5}
+.review-ai-action{min-height:34px;display:inline-flex;align-items:center;gap:7px;border:1px solid #e1e1f3;background:#f0effa;color:#5559a5;padding:0 11px;border-radius:7px;font-size:11px;font-weight:700;white-space:nowrap}
+.review-ai-action:hover{background:#e5e5f7;border-color:#cbceec}
+.review-ai-action:disabled{opacity:.6}
+.review-action-hint{font-size:10px;color:#aaadbb;white-space:nowrap}
+.review-filters{padding:12px 17px 11px}
+.review-items{padding:14px 14px 18px}
+.comment-composer{margin:12px 14px 0}
+.review-footer{padding:12px 17px}
+.review-toggle{padding:0 10px;color:#74788c}
+.review-toggle:hover,.review-toggle[aria-expanded="true"]{border-color:#e6e7f3}
+.app-shell.focus-layout .editing-toolbar .review-toggle{color:#7b7f94}
+.app-shell.focus-layout .editing-toolbar .review-toggle:hover{color:#5559a7}
+.app-shell.focus-layout .editing-toolbar .review-toggle[aria-expanded="true"]{color:#5a5eaa;background:#efeffa}
+.selection-toolbar{border-radius:9px;padding:4px}
+.selection-toolbar button{padding:8px 10px;font-size:11px}
+/* The body text never reflows when the floating review window opens. */
+.editor-main{min-width:0}
+@media(max-width:1040px){
+  .document-finalize{gap:10px;margin-left:0}
+  .finalize-divider{display:none}
+}
+@media(max-width:750px){
+  .document-finalize{margin-left:0}
+  .document-finalize .approve-button{padding:0 9px;height:31px;font-size:11px}
+  .review-sidebar.open,
+  .app-shell.focus-layout .review-sidebar.open,
+  .app-shell:not(.focus-layout) .review-sidebar.open{
+    position:fixed;
+    top:56px;bottom:0;right:0;
+    width:min(360px,100vw);
+    max-width:100vw;
+    min-width:0;
+    height:auto;
+    max-height:none;
+    border-radius:12px 0 0 0;
+    border-right:0;
+    z-index:35;
+  }
+  .review-ai-action{font-size:11px}
+}
+@media(max-width:560px){
+  .topbar{gap:7px}
+  .app-shell.focus-layout .topbar{gap:6px;padding:0 9px}
+  .document-finalize .approve-button{font-size:10px;padding:0 8px}
+  .avatar{display:none}
+  .topbar-btn#openAssets{font-size:11px}
+  .layout-switch{font-size:10px!important}
+}
+@media(max-width:385px){
+  .brand-name{display:none}
+  .topbar-btn#openAssets{padding:6px 4px}
+  .topbar .document-finalize .approve-button{padding:0 7px}
+  .review-sidebar.open,
+  .app-shell.focus-layout .review-sidebar.open,
+  .app-shell:not(.focus-layout) .review-sidebar.open{top:54px}
+}
