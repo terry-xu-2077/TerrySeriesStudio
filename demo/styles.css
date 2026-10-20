@@ -27,3 +27,90 @@
 /* Generation is a deliberate placeholder, not a second review editor. */
 .workspace.is-generation .review-sidebar{display:none}
 .workspace.is-generation .paper{min-height:650px}
+
+
+/* ── Editor-first revision · 2026-10-20 ─────────────────────────────
+   Default to writing, not an always-open three-panel management UI.
+   The project sidebar is optional; comments are revealed on demand.
+   This section overrides the original demo's layout without changing
+   its asset library, structured comments or editor interactions.
+────────────────────────────────────────────────────────────────── */
+.review-sidebar:not(.open){display:none}
+.review-sidebar.open{display:flex}
+.review-sidebar .mobile-close{display:grid;width:28px;height:28px;font-size:21px}
+.review-toggle{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border:1px solid transparent;background:transparent;color:#777b90;border-radius:7px;font-size:12px;font-weight:630}
+.review-toggle:hover,.review-toggle[aria-expanded="true"]{background:#eff0fa;border-color:#e6e7f3;color:#565aad}
+.review-counter{font-size:10px;font-weight:680;color:#898ca0;min-width:10px;text-align:center}
+.review-toggle[aria-expanded="true"] .review-counter{color:#6569b9}
+.review-icon{font-size:13px;font-weight:400;letter-spacing:-.1em}
+.layout-switch{font-size:11px!important;gap:7px!important;white-space:nowrap}
+.layout-switch-icon{font-size:15px;color:#8c90a2}
+.layout-switch:hover .layout-switch-icon{color:#5c5fb2}
+.app-shell.focus-layout .sidebar{display:none}
+.app-shell.focus-layout .topbar{min-height:54px;height:54px;padding:0 clamp(18px,3vw,44px);gap:20px}
+.app-shell.focus-layout .brand-mark{height:26px;width:26px;border-radius:7px;box-shadow:none}
+.app-shell.focus-layout .brand-name{font-size:11px}
+.app-shell.focus-layout .brand-name>span,
+.app-shell.focus-layout .topbar-divider,
+.app-shell.focus-layout .topbar-location .topbar-muted,
+.app-shell.focus-layout .topbar-location .tiny-chevron,
+.app-shell.focus-layout .demo-pill,
+.app-shell.focus-layout .reset-control,
+.app-shell.focus-layout .avatar{display:none}
+.app-shell.focus-layout .topbar-location{font-size:12px;font-weight:550;color:#9295a3;gap:7px}
+.app-shell.focus-layout .topbar-location>span:not(.location-episode):not(.topbar-muted){color:#676b7b}
+.app-shell.focus-layout .location-episode::before{content:"/";padding-right:8px;color:#c8c9d1}
+.app-shell.focus-layout .document-tabs{height:49px;min-height:49px;padding:0 clamp(19px,3.5vw,54px);gap:29px;background:#fff}
+.app-shell.focus-layout .stage-tab{font-size:12px;color:#9699a6;font-weight:570}
+.app-shell.focus-layout .stage-tab.active{color:#4d529e;font-weight:710}
+.app-shell.focus-layout .saved-state{font-size:10px}
+.app-shell.focus-layout .editing-toolbar{min-height:58px;padding:0 clamp(19px,3.5vw,54px);background:#f9fafc;border-bottom:1px solid #f0f1f5}
+.app-shell.focus-layout .toolbar-title{font-size:11px;color:#8d90a0;font-weight:550}
+.app-shell.focus-layout .toolbar-title #toolbarDoc{color:#adb0bd}
+.app-shell.focus-layout .toolbar-actions{gap:5px}
+.app-shell.focus-layout .toolbar-actions .icon-button{color:#a5a8b6}
+.app-shell.focus-layout .toolbar-separator{margin:0 5px;background:#e8e9ef}
+.app-shell.focus-layout .subtle-button{background:transparent;border-color:transparent;color:#878aa0;box-shadow:none}
+.app-shell.focus-layout .subtle-button:hover{background:#f0f0f8;color:#6065a8}
+.app-shell.focus-layout .accent-button{color:#575bac;background:#edecf9;border-color:#e4e3f4;box-shadow:none}
+.app-shell.focus-layout .accent-button:hover{background:#e3e4f6;border-color:#ccceef}
+.app-shell.focus-layout .approve-button{background:transparent;color:#808c86;border-color:transparent;box-shadow:none}
+.app-shell.focus-layout .approve-button:hover{background:#ecf7f1;color:#4d8564}
+.app-shell.focus-layout .page-scroller{padding:26px clamp(12px,3vw,52px) 48px;background:#f7f8fb}
+.app-shell.focus-layout .paper{max-width:880px;min-height:820px;padding:66px clamp(38px,7vw,98px) 88px;background:#fff;border:1px solid #f0f1f5;box-shadow:0 1px 5px #26305009,0 7px 24px #26305006;border-radius:3px}
+.app-shell.focus-layout .paper h1{font-size:28px;margin-top:30px}
+.app-shell.focus-layout .paper-rule{margin:30px 0 41px}
+.app-shell.focus-layout .editor-blocks{font-size:15px;line-height:2.05;color:#313442}
+.app-shell.focus-layout .doc-block{margin-bottom:23px}
+.app-shell.focus-layout .doc-block.kind-scene{margin-top:41px;margin-bottom:20px}
+.app-shell.focus-layout .doc-block.kind-scene .block-editable{font-size:12px;color:#62699e}
+.app-shell.focus-layout .doc-block.kind-dialogue{border-left:2px solid #f0f0f7}
+.app-shell.focus-layout .review-sidebar.open{width:330px;min-width:330px}
+.app-shell.focus-layout .review-sidebar.open .review-header{padding-top:21px}
+.app-shell.focus-layout .page-hint{color:#b4b7c2;font-size:10px}
+.app-shell.focus-layout .hint-separator{font-size:11px;color:#c3c5cf;margin:0 5px}
+.app-shell.focus-layout .page-hint span{margin-right:0}
+/* Full workspace can still be expanded, but comments stay collapsed
+   until a user explicitly asks for them or AI completes a review. */
+.app-shell:not(.focus-layout) .review-sidebar.open{flex-shrink:0}
+.app-shell:not(.focus-layout) .page-scroller{padding-left:clamp(18px,3vw,55px);padding-right:clamp(18px,3vw,55px)}
+@media(max-width:1100px){
+  .app-shell.focus-layout .paper{padding-left:clamp(35px,6vw,75px);padding-right:clamp(35px,6vw,75px)}
+  .app-shell.focus-layout .review-sidebar.open{width:300px;min-width:300px}
+}
+@media(max-width:750px){
+  .app-shell.focus-layout .topbar{height:54px;min-height:54px;padding:0 13px;gap:9px}
+  .app-shell.focus-layout .topbar-location{display:none}
+  .app-shell.focus-layout .brand-name{font-size:10px}
+  .layout-switch{font-size:10px!important;padding:6px!important}
+  .layout-switch-icon{display:none}
+  .app-shell.focus-layout .document-tabs{padding:0 15px;gap:18px}
+  .app-shell.focus-layout .editing-toolbar{padding:8px 12px;min-height:57px}
+  .app-shell.focus-layout .page-scroller{padding:13px 7px 32px}
+  .app-shell.focus-layout .paper{padding:36px 22px 55px;min-height:700px}
+  .app-shell.focus-layout .paper h1{font-size:23px}
+  .app-shell.focus-layout .editor-blocks{font-size:13px;line-height:1.95}
+  .app-shell.focus-layout .review-sidebar.open{position:fixed;top:54px;right:0;bottom:0;width:min(360px,100vw);min-width:0;z-index:30;box-shadow:-5px 0 30px #25253b28}
+  .review-toggle-label{display:none}
+  .app-shell.focus-layout .toolbar-actions .icon-button{display:none}
+}
