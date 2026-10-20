@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>TerrySeriesStudio · 剧集工作室交互 Demo</title>
+  <meta name="description" content="Word 式剧本与分镜 AI 批注交互 Demo，无需后端">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand" aria-label="剧集工作室">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="brand-name">TERRY <strong>SERIES</strong> <span>STUDIO</span></div>
+      </div>
+      <div class="topbar-divider"></div>
+      <div class="topbar-location"><span class="topbar-muted">工作室</span><span class="tiny-chevron">›</span><span>异星边境</span><span class="tiny-chevron">›</span><span class="location-episode">EP01</span></div>
+      <span class="demo-pill">交互原型</span>
+      <div class="topbar-spacer"></div>
+      <button class="topbar-btn" id="openAssets" type="button"><span class="btn-glyph">▧</span> 资产库</button>
+      <button class="topbar-btn reset-control" id="resetDemo" type="button" title="清除本地演示内容并恢复示例">重置示例</button>
+      <div class="avatar" title="本地创作者">T</div>
+    </header>
+
+    <div class="body-grid">
+      <aside class="sidebar" aria-label="项目导航">
+        <div class="sidebar-section-label">当前项目</div>
+        <div class="project-tile">
+          <div class="project-art" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="project-tile-info"><strong>异星边境</strong><span>OFFWORLD FRONTIER</span></div>
+        </div>
+        <div class="sidebar-section-head"><span>第一季</span><span class="sidebar-count">01 / 10</span></div>
+        <button class="episode active" type="button"><span class="episode-indicator"></span><span><strong>EP 01</strong><small>剧本创作中</small></span><span class="episode-arrow">›</span></button>
+        <div class="episode inactive"><span class="episode-indicator"></span><span><strong>EP 02</strong><small>暂未开始</small></span></div>
+        <div class="episode inactive"><span class="episode-indicator"></span><span><strong>EP 03</strong><small>暂未开始</small></span></div>
+        <div class="sidebar-line"></div>
+        <div class="sidebar-section-label">创作空间</div>
+        <button type="button" class="sidebar-link active" data-go="script"><span class="sidebar-icon">▤</span> 剧本编辑<span class="tiny-dot"></span></button>
+        <button type="button" class="sidebar-link" data-go="storyboard"><span class="sidebar-icon">▦</span> 分镜脚本</button>
+        <button type="button" class="sidebar-link" data-go="generate"><span class="sidebar-icon">▶</span> 视频生成</button>
+        <div class="sidebar-bottom">
+          <div class="info-icon">i</div>
+          <p>当前为独立前端 Demo。AI 意见与生成状态均为模拟数据。</p>
+        </div>
+      </aside>
+
+      <main class="main-area">
+        <div class="document-tabs" role="tablist" aria-label="制作阶段">
+          <button type="button" class="stage-tab active" role="tab" aria-selected="true" data-tab="script"><span>01</span> 剧本</button>
+          <button type="button" class="stage-tab" role="tab" aria-selected="false" data-tab="storyboard"><span>02</span> 分镜</button>
+          <button type="button" class="stage-tab" role="tab" aria-selected="false" data-tab="generate"><span>03</span> 生成</button>
+          <div class="tabs-fill"></div>
+          <span class="saved-state" id="saveStatus"><span class="save-dot"></span> 所有更改已保存</span>
+        </div>
+
+        <div class="workspace" id="workArea">
+          <section class="editor-main" aria-label="文档编辑器">
+            <div class="editing-toolbar">
+              <div class="toolbar-title"><span id="toolbarScope">剧本编辑</span><span class="toolbar-divider">/</span><span id="toolbarDoc">初稿</span></div>
+              <div class="toolbar-actions">
+                <button type="button" class="icon-button" id="undoButton" title="撤销（Ctrl+Z）" aria-label="撤销">↶</button>
+                <button type="button" class="icon-button" id="redoButton" title="重做（Ctrl+Y）" aria-label="重做">↷</button>
+                <div class="toolbar-separator"></div>
+                <button type="button" class="subtle-button" id="addCommentButton">＋ <span>批注</span></button>
+                <button type="button" class="accent-button" id="aiReviewButton"><span class="star">✦</span> <span id="aiReviewLabel">AI 审查</span></button>
+                <button type="button" class="approve-button" id="approveButton">✓ <span id="approveLabel">批准本稿</span></button>
+              </div>
+            </div>
+
+            <div class="page-scroller" id="pageScroller">
+              <article class="paper" id="paper">
+                <div class="doc-topline"><span id="docKicker">EPISODE 01 · SCREENPLAY</span><span class="version" id="versionLabel">草稿 V1</span></div>
+                <h1 id="docTitle">第一集 · 回收日</h1>
+                <p class="document-subtitle" id="docSubtitle">剧本初稿 · 可直接点击文字编辑，也可选择一段文字添加批注。</p>
+                <div class="paper-rule"></div>
+                <div id="editorBlocks" class="editor-blocks"></div>
+                <div class="paper-end"><span>— END —</span></div>
+              </article>
+              <div class="page-hint"><span>⌘</span> 选择文字即可添加批注 · Ctrl+Z 撤销 · 编辑内容仅保存在当前浏览器</div>
+            </div>
+          </section>
+
+          <aside class="review-sidebar" id="reviewSidebar" aria-label="批注面板">
+            <div class="review-header">
+              <div><div class="review-heading">批注与修订</div><div class="review-subheading" id="reviewCount">当前没有批注</div></div>
+              <button type="button" class="icon-button mobile-close" id="closeReview" title="关闭批注">×</button>
+            </div>
+            <div class="review-filters">
+              <button type="button" class="filter active" data-filter="all">全部</button>
+              <button type="button" class="filter" data-filter="pending">待处理 <span id="pendingCount">0</span></button>
+            </div>
+            <div id="commentComposer" class="comment-composer" hidden>
+              <div class="composer-label">新建批注</div>
+              <div class="composer-quote" id="composerQuote"></div>
+              <textarea id="commentInput" rows="3" placeholder="这里的表达可以再明确一点……"></textarea>
+              <div class="composer-actions"><button id="cancelComment" class="text-action" type="button">取消</button><button id="submitComment" class="accent-button" type="button">添加批注</button></div>
+            </div>
+            <div id="reviewItems" class="review-items"></div>
+            <div class="review-footer"><span class="review-footer-icon">✦</span> 批注由你决定是否采纳，AI 不会直接修改原文。</div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="selectionToolbar" class="selection-toolbar" hidden>
+    <button type="button" id="selectionComment">＋ 添加批注</button>
+    <span class="selection-rule"></span>
+    <button type="button" id="selectionRewrite">✦ AI 建议</button>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="drawer-backdrop" id="assetBackdrop" hidden></div>
+  <aside class="asset-drawer" id="assetDrawer" aria-label="资产库预览" hidden>
+    <div class="drawer-header"><div><span class="drawer-eyebrow">PROJECT LIBRARY</span><h2>项目资产</h2></div><button class="icon-button" id="closeAssets" type="button" aria-label="关闭资产库">×</button></div>
+    <div class="drawer-description">角色和场景资产会在后续开发中与剧本、分镜和 ComfyUI 引用绑定。这里仅展示概念结构。</div>
+    <div class="drawer-group-title">角色 <span>CHARACTERS</span></div>
+    <div class="asset-card"><div class="asset-thumb character-thumb">T</div><div><strong>特瑞</strong><small>人物描述 · 参考图片 · 声音样本</small><em>待导入正式资产</em></div></div>
+    <div class="asset-card"><div class="asset-thumb character-thumb second">7</div><div><strong>小七</strong><small>人物描述 · 参考图片 · 声音样本</small><em>待导入正式资产</em></div></div>
+    <div class="drawer-group-title">场景 <span>LOCATIONS</span></div>
+    <div class="asset-card"><div class="asset-thumb scene-thumb">⌂</div><div><strong>基地内部</strong><small>场景描述 · 环境参考图片</small><em>待导入正式资产</em></div></div>
+    <div class="drawer-note">此演示不包含真实角色图、配音和素材上传，避免将占位资产误认为正式设定。</div>
+  </aside>
+</body>
+</html>
