@@ -18,6 +18,11 @@
       </div>
       <div class="topbar-divider"></div>
       <div class="topbar-location"><span class="topbar-muted">工作室</span><span class="tiny-chevron">›</span><span>异星边境</span><span class="tiny-chevron">›</span><span class="location-episode">EP01</span></div>
+      <nav class="topbar-stages" role="tablist" aria-label="工作区切换">
+        <button type="button" class="stage-tab active" role="tab" aria-selected="true" data-tab="script"><span>01</span> 剧本</button>
+        <button type="button" class="stage-tab" role="tab" aria-selected="false" data-tab="storyboard"><span>02</span> 分镜</button>
+        <button type="button" class="stage-tab" role="tab" aria-selected="false" data-tab="generate"><span>03</span> 生成</button>
+      </nav>
       <span class="demo-pill">交互原型</span>
       <div class="topbar-spacer"></div>
       <button class="topbar-btn layout-switch" id="toggleFocus" type="button" aria-pressed="true" title="切换专注写作与完整工作区"><span class="layout-switch-icon" aria-hidden="true">☰</span><span id="focusLabel">展开项目导航</span></button>
@@ -38,11 +43,6 @@
         <button class="episode active" type="button"><span class="episode-indicator"></span><span><strong>EP 01</strong><small>剧本创作中</small></span><span class="episode-arrow">›</span></button>
         <div class="episode inactive"><span class="episode-indicator"></span><span><strong>EP 02</strong><small>暂未开始</small></span></div>
         <div class="episode inactive"><span class="episode-indicator"></span><span><strong>EP 03</strong><small>暂未开始</small></span></div>
-        <div class="sidebar-line"></div>
-        <div class="sidebar-section-label">创作空间</div>
-        <button type="button" class="sidebar-link active" data-go="script"><span class="sidebar-icon">▤</span> 剧本编辑<span class="tiny-dot"></span></button>
-        <button type="button" class="sidebar-link" data-go="storyboard"><span class="sidebar-icon">▦</span> 分镜脚本</button>
-        <button type="button" class="sidebar-link" data-go="generate"><span class="sidebar-icon">▶</span> 视频生成</button>
         <div class="sidebar-bottom">
           <div class="info-icon">i</div>
           <p>当前为独立前端 Demo。AI 意见与生成状态均为模拟数据。</p>
@@ -50,19 +50,12 @@
       </aside>
 
       <main class="main-area">
-        <div class="document-tabs" role="tablist" aria-label="制作阶段">
-          <button type="button" class="stage-tab active" role="tab" aria-selected="true" data-tab="script"><span>01</span> 剧本</button>
-          <button type="button" class="stage-tab" role="tab" aria-selected="false" data-tab="storyboard"><span>02</span> 分镜</button>
-          <button type="button" class="stage-tab" role="tab" aria-selected="false" data-tab="generate"><span>03</span> 生成</button>
-          <div class="tabs-fill"></div>
-          <span class="saved-state" id="saveStatus"><span class="save-dot"></span> 所有更改已保存</span>
-        </div>
-
         <div class="workspace" id="workArea">
           <svg class="review-relations" id="reviewRelations" aria-hidden="true" preserveAspectRatio="none"></svg>
           <section class="editor-main" aria-label="文档编辑器">
             <div class="editing-toolbar">
               <div class="toolbar-title"><span id="toolbarScope">剧本编辑</span><span class="toolbar-divider">/</span><span id="toolbarDoc">初稿</span></div>
+              <span class="saved-state" id="saveStatus"><span class="save-dot"></span> 所有更改已保存</span>
               <div class="toolbar-actions">
                 <button type="button" class="icon-button" id="undoButton" title="撤销（Ctrl+Z）" aria-label="撤销">↶</button>
                 <button type="button" class="icon-button" id="redoButton" title="重做（Ctrl+Y）" aria-label="重做">↷</button>
