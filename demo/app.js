@@ -542,7 +542,7 @@
     window.setTimeout(function(){
       reviewing=false;
       elem("aiReviewButton").disabled=false;
-      elem("aiReviewLabel").textContent="AI 审查";
+      elem("aiReviewLabel").textContent="AI 审查全文";
       if(documentTab()!==tab || currentRevision()!==revision){
         notify("审查期间文档发生变化，结果未应用；可重新审查");
         return;
