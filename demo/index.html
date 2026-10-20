@@ -59,6 +59,7 @@
         </div>
 
         <div class="workspace" id="workArea">
+          <svg class="review-relations" id="reviewRelations" aria-hidden="true" preserveAspectRatio="none"></svg>
           <section class="editor-main" aria-label="文档编辑器">
             <div class="editing-toolbar">
               <div class="toolbar-title"><span id="toolbarScope">剧本编辑</span><span class="toolbar-divider">/</span><span id="toolbarDoc">初稿</span></div>
@@ -83,21 +84,15 @@
             </div>
           </section>
 
-          <aside class="review-sidebar" id="reviewSidebar" aria-label="审阅浮窗">
+          <aside class="review-sidebar" id="reviewSidebar" aria-label="正文关联批改意见">
             <div class="review-header">
-              <div><div class="review-heading">审阅</div><div class="review-subheading" id="reviewCount">当前没有批注</div></div>
-              <button type="button" class="icon-button mobile-close" id="closeReview" aria-label="收起批注" title="收起批注">×</button>
+              <div><div class="review-heading">批改意见</div><div class="review-subheading" id="reviewCount">当前没有批注</div></div>
+              <button type="button" class="icon-button mobile-close" id="closeReview" aria-label="收起右侧批改意见" title="收起批改意见">×</button>
             </div>
             <div class="review-actions"><button type="button" class="review-ai-action" id="aiReviewButton"><span class="star">✦</span> <span id="aiReviewLabel">AI 审查全文</span></button><span class="review-action-hint">批注与修改建议</span></div>
             <div class="review-filters">
               <button type="button" class="filter active" data-filter="all">全部</button>
               <button type="button" class="filter" data-filter="pending">待处理 <span id="pendingCount">0</span></button>
-            </div>
-            <div id="commentComposer" class="comment-composer" hidden>
-              <div class="composer-label">新建批注</div>
-              <div class="composer-quote" id="composerQuote"></div>
-              <textarea id="commentInput" rows="3" placeholder="这里的表达可以再明确一点……"></textarea>
-              <div class="composer-actions"><button id="cancelComment" class="text-action" type="button">取消</button><button id="submitComment" class="accent-button" type="button">添加批注</button></div>
             </div>
             <div id="reviewItems" class="review-items"></div>
             <div class="review-footer"><span class="review-footer-icon">✦</span> 批注由你决定是否采纳，AI 不会直接修改原文。</div>
@@ -109,6 +104,12 @@
 
   <div id="selectionToolbar" class="selection-toolbar" hidden>
     <button type="button" id="selectionComment">＋ 添加批改</button>
+  </div>
+  <div id="commentComposer" class="comment-composer selection-comment-popup" role="dialog" aria-label="添加批改" hidden>
+    <div class="composer-label">添加批改 <button type="button" class="composer-close" id="cancelComment" aria-label="关闭批改输入">×</button></div>
+    <div class="composer-quote" id="composerQuote"></div>
+    <textarea id="commentInput" rows="3" placeholder="针对所选文字写下意见……"></textarea>
+    <div class="composer-actions"><span class="composer-shortcut">Ctrl + Enter 提交</span><button id="submitComment" class="accent-button" type="button">添加</button></div>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
