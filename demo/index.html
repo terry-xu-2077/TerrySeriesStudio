@@ -23,6 +23,7 @@
       <button class="topbar-btn layout-switch" id="toggleFocus" type="button" aria-pressed="true" title="切换专注写作与完整工作区"><span class="layout-switch-icon" aria-hidden="true">☰</span><span id="focusLabel">展开项目导航</span></button>
       <button class="topbar-btn" id="openAssets" type="button"><span class="btn-glyph">▧</span> 资产库</button>
       <button class="topbar-btn reset-control" id="resetDemo" type="button" title="清除本地演示内容并恢复示例">重置示例</button>
+      <div class="document-finalize"><span class="finalize-divider" aria-hidden="true"></span><button type="button" class="approve-button" id="approveButton" title="批准当前版本，进入下一阶段">✓ <span id="approveLabel">批准本稿</span></button></div>
       <div class="avatar" title="本地创作者">T</div>
     </header>
 
@@ -65,10 +66,7 @@
                 <button type="button" class="icon-button" id="undoButton" title="撤销（Ctrl+Z）" aria-label="撤销">↶</button>
                 <button type="button" class="icon-button" id="redoButton" title="重做（Ctrl+Y）" aria-label="重做">↷</button>
                 <div class="toolbar-separator"></div>
-                <button type="button" class="review-toggle" id="openReview" aria-label="显示批注" aria-expanded="false"><span class="review-icon" aria-hidden="true">☰</span> <span class="review-toggle-label">批注</span> <span class="review-counter" id="reviewMobileCount">0</span></button>
-                <button type="button" class="subtle-button" id="addCommentButton">＋ <span>批注</span></button>
-                <button type="button" class="accent-button" id="aiReviewButton"><span class="star">✦</span> <span id="aiReviewLabel">AI 审查</span></button>
-                <button type="button" class="approve-button" id="approveButton">✓ <span id="approveLabel">批准本稿</span></button>
+                <button type="button" class="review-toggle" id="openReview" aria-controls="reviewSidebar" aria-label="打开审阅浮窗" aria-expanded="false"><span class="review-icon" aria-hidden="true">☷</span> <span class="review-toggle-label">审阅</span> <span class="review-counter" id="reviewMobileCount">0</span></button>
               </div>
             </div>
 
@@ -85,11 +83,12 @@
             </div>
           </section>
 
-          <aside class="review-sidebar" id="reviewSidebar" aria-label="批注面板">
+          <aside class="review-sidebar" id="reviewSidebar" aria-label="审阅浮窗">
             <div class="review-header">
-              <div><div class="review-heading">批注与修订</div><div class="review-subheading" id="reviewCount">当前没有批注</div></div>
+              <div><div class="review-heading">审阅</div><div class="review-subheading" id="reviewCount">当前没有批注</div></div>
               <button type="button" class="icon-button mobile-close" id="closeReview" aria-label="收起批注" title="收起批注">×</button>
             </div>
+            <div class="review-actions"><button type="button" class="review-ai-action" id="aiReviewButton"><span class="star">✦</span> <span id="aiReviewLabel">AI 审查全文</span></button><span class="review-action-hint">批注与修改建议</span></div>
             <div class="review-filters">
               <button type="button" class="filter active" data-filter="all">全部</button>
               <button type="button" class="filter" data-filter="pending">待处理 <span id="pendingCount">0</span></button>
@@ -109,9 +108,7 @@
   </div>
 
   <div id="selectionToolbar" class="selection-toolbar" hidden>
-    <button type="button" id="selectionComment">＋ 添加批注</button>
-    <span class="selection-rule"></span>
-    <button type="button" id="selectionRewrite">✦ AI 建议</button>
+    <button type="button" id="selectionComment">＋ 添加批改</button>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
