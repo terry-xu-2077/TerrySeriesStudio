@@ -57,6 +57,13 @@
 
 见 **[docs/ASSET_LIBRARY.md](docs/ASSET_LIBRARY.md)**：角色和场景资产的图片、音频、文本设定、版本管理、AI 上下文绑定及 ComfyUI 参考槽位映射。
 
-见 **[docs/REVIEW_EDITOR.md](docs/REVIEW_EDITOR.md)**：Word 式选中文字批注、AI 右侧审查意见、建议修订的接受/忽略与文本保护。参考 [ComfyUI-MieNodes](https://github.com/MieMieeeee/ComfyUI-MieNodes) 的资产包理念，独立实现，不复制其节点代码。
+见 **[docs/REVIEW_EDITOR.md](docs/REVIEW_EDITOR.md)**：Word 式选中文字批注、AI 右侧审查意见、建议修订的接受/忽略与文本保护。
+
+**AI 批改基础文件（已添加，尚未接入运行时）**：
+- [剧本批改 Skill](skills/script-review/SKILL.md)
+- [分镜批改 Skill](skills/storyboard-review/SKILL.md)
+- [统一批注协议与原文锚定检查](src/review/schema.ts)
+
+Skill 只规定审查原则；两阶段共同使用 Terry Review v1 格式，程序校验并定位批注、用户决定是否采纳。
 
 **成功标准**：第一集能从已有剧本连续运行到“交付可用的独立视频素材”，人工只需在创作审核与结果选择等关键点介入；真实统计每集人工时长、API 用量、GPU 耗时、镜头重跑次数。
