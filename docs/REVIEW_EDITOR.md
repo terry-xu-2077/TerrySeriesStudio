@@ -33,6 +33,39 @@
 - 用户编辑期间若 AI 的异步审查结果返回，应先核对输入文档版本。版本不一致时标记「基于旧稿的建议」，不覆盖或强行套用现有文字。
 - 批注中的「AI 修订」不等于自动批准；没有用户明确批准的正式稿，不进入下一个生产阶段。
 
+## 两份审查 Skill 与统一批注协议
+
+- [剧本批改 Skill](../skills/script-review/SKILL.md)：负责人物、冲突、对白、因果、节奏和剧情一致性等**审查标准**。
+- [分镜批改 Skill](../skills/storyboard-review/SKILL.md)：负责镜头目的、空间/动作连续性、节奏和**生成可行性**等审查标准。
+- [Terry Review v1 结构与校验](../src/review/schema.ts)：应用唯一的 AI 输出协议，提供 `REVIEW_RESPONSE_JSON_SCHEMA`、`parseReviewResponse` 和 `anchorReviewComments`。Skill 不复制协议的字段定义。
+
+**API 提交**：应用把本次审查文本按稳定 `block_id` 组成块列表，附上原始 `document_revision`、当前剧集目标和相关设定。调用时装载选定 Skill 的内容 + 统一 JSON Schema。无论云端模型支持严格结构化输出与否，**应用都必须再次校验实际响应**。
+
+典型返回（示例，不代表已接入 API）：
+
+```json
+{
+  "format": "terry-review",
+  "version": 1,
+  "document_revision": "ep01-script-rev3",
+  "comments": [
+    {
+      "block_id": "scene03-dialogue04",
+      "quote": "我们没有别的选择了。",
+      "comment": "这句话过于抽象，可用眼前的生存困境让人物更具体。",
+      "replacement": "不这么做，明天我们连水都没有。",
+      "severity": "suggestion"
+    }
+  ]
+}
+```
+
+**定位规则**：先核对文档修订号，再在对应 `block_id` 的原文里做**精确且唯一**的 `quote` 匹配，程序计算 UTF-16 选区。旧版本、原文已变、引用重复或块不存在时都不能自动挂到相似文字上；应显示未定位批注供用户查看。
+
+**文本保存**：`script.md` 存剧本文字；`script.review.json` 计划存评论 ID、作者、处理状态、锚点与修订号。分镜 JSON 则通过镜头稳定 ID + 字段路径生成 `block_id`。Markdown 解析时须为文档块维护稳定标识映射，不能用会随插删改变的「第 3 段」当 ID。文件格式及编辑器接入尚待 M1/M2 实现。
+
+**安全修改**：模型只能提供候选 `replacement`，用户点击接受时应用还必须再次确认该区间仍等于原先 `quote`，才修改文本并保存新的修订。UI 隐藏 JSON、模型角色、修订号等内部字段。
+
 ## 首版明确不做
 
 - 不实现完整 Office / DOCX 排版、分页、复杂表格格式或多人实时协作。
