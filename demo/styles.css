@@ -343,3 +343,92 @@
   .app-shell .topbar .topbar-btn#openAssets{padding:5px 3px}
   .app-shell .topbar .layout-switch{max-width:125px;overflow:hidden}
 }
+
+
+/* ── Human decision required: high-contrast charcoal review block ── */
+.workspace .review-sidebar .comment-card .review-decision{
+  background:#363b46;
+  border:1px solid #363b46;
+  border-radius:8px;
+  padding:13px 12px 12px;
+  margin-top:14px;
+  color:#f5f6f9;
+  box-shadow:0 3px 9px #25293415;
+}
+.workspace .review-sidebar .comment-card .review-decision .replacement-label{
+  display:flex;align-items:center;gap:7px;
+  font-size:11px;font-weight:740;color:#f1f2f7;
+  margin-bottom:10px;letter-spacing:.02em;
+}
+.review-decision .decision-dot{
+  display:inline-block;flex-shrink:0;
+  height:6px;width:6px;border-radius:50%;
+  background:#d3d6e5;
+  box-shadow:0 0 0 3px #ffffff16;
+}
+.workspace .review-sidebar .comment-card .review-decision .replacement-text{
+  background:#454b57;
+  color:#fff;
+  border:1px solid #555b68;
+  border-radius:5px;
+  font-size:12px;
+  line-height:1.85;
+  padding:10px 11px;
+  margin:0 0 12px;
+  white-space:pre-wrap;
+}
+.workspace .review-sidebar .comment-card .review-decision .decision-hint{
+  color:#d8dbe4;
+  font-size:11px;
+  line-height:1.7;
+  margin-bottom:12px;
+}
+.workspace .review-sidebar .comment-card .review-decision .comment-actions{
+  display:flex;align-items:center;gap:8px;
+  margin:0;
+}
+.workspace .review-sidebar .comment-card .review-decision .comment-actions button{
+  min-height:30px;padding:5px 12px;
+  border-radius:5px;
+  border:1px solid #818795;
+  background:transparent;
+  font-size:11px;font-weight:700;
+  line-height:1.4;
+  color:#f1f3fa;
+  text-decoration:none;
+  transition:background .12s,border-color .12s;
+}
+.workspace .review-sidebar .comment-card .review-decision .comment-actions button.accept{
+  color:#333944;
+  background:#fff;
+  border-color:#fff;
+}
+.workspace .review-sidebar .comment-card .review-decision .comment-actions button.accept:hover:not(:disabled){
+  background:#e9eaf2;border-color:#e9eaf2;
+}
+.workspace .review-sidebar .comment-card .review-decision .comment-actions button.ignore{
+  color:#f1f2f6;
+  border-color:#818795;
+}
+.workspace .review-sidebar .comment-card .review-decision .comment-actions button.ignore:hover{
+  background:#555c69;border-color:#a6abba;
+}
+.workspace .review-sidebar .comment-card .review-decision .comment-actions button:disabled{
+  opacity:.45;cursor:not-allowed;
+}
+.workspace .review-sidebar .comment-card .replacement-archive{
+  border:1px solid #e7e8ef;
+  background:#f7f8fa;
+  border-radius:7px;
+  padding:11px;
+  margin-bottom:11px;
+}
+.workspace .review-sidebar .comment-card .replacement-archive .replacement-label{
+  color:#9ca1b0;
+  font-size:10px;
+}
+.workspace .review-sidebar .comment-card .replacement-archive .replacement-text{
+  background:none;color:#6b7080;
+  padding:0;margin:0;
+  font-size:11px;line-height:1.8;
+}
