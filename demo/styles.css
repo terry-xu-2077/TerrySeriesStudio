@@ -432,3 +432,45 @@
   padding:0;margin:0;
   font-size:11px;line-height:1.8;
 }
+
+
+/* ── Editorial canvas contrast · 2026-10-20 ──────────────────────
+   Darken only the large areas outside the paper. Keep the reading
+   surface white and the already-approved charcoal decision blocks. */
+:root{
+  --studio-canvas:#e9ecf2;
+  --studio-review-rail:#f6f7fa;
+  --studio-toolbar:#f8f9fb;
+}
+.workspace,
+.editor-main,
+.page-scroller,
+.app-shell.focus-layout .page-scroller{
+  background:var(--studio-canvas);
+}
+.paper,
+.app-shell.focus-layout .paper{
+  background:#fff;
+  border-color:#e6e8ee;
+  box-shadow:
+    0 3px 9px #2931490b,
+    0 15px 42px #29314918,
+    0 30px 72px #2931490c;
+}
+.editing-toolbar,
+.app-shell.focus-layout .editing-toolbar{
+  background:var(--studio-toolbar);
+  border-bottom:1px solid #e4e6ee;
+}
+.workspace .review-sidebar.open,
+.app-shell.focus-layout .workspace .review-sidebar.open,
+.app-shell:not(.focus-layout) .workspace .review-sidebar.open{
+  background:var(--studio-review-rail);
+  border-left-color:#dfe2eb;
+}
+.workspace .review-sidebar .review-header,
+.workspace .review-sidebar .review-actions,
+.workspace .review-sidebar .review-filters,
+.workspace .review-sidebar .review-footer{
+  background:var(--studio-review-rail);
+}
