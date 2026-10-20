@@ -25,6 +25,7 @@
   function initialState() {
     return {
       activeTab:"script",
+      layout:"focus",
       documents:{script:clone(demoScript),storyboard:clone(demoStoryboard)},
       comments:{script:[],storyboard:[]},
       summaries:{script:"",storyboard:""},
@@ -50,6 +51,7 @@
          !parsed.comments || !parsed.comments.script || !parsed.comments.storyboard) return initialState();
       return {
         activeTab:["script","storyboard","generate"].includes(parsed.activeTab)?parsed.activeTab:"script",
+        layout:parsed.layout==="full"?"full":"focus",
         documents:parsed.documents,
         comments:parsed.comments,
         summaries:parsed.summaries || {script:"",storyboard:""},
@@ -146,14 +148,26 @@
     currentSelection=null;
     closeComposer();
     state.activeTab=tab;
+    setReviewOpen(false);
     selectedCommentId=null;
     reviewFilter="all";
     paintAll();
     saveSoon();
   }
 
+  function setReviewOpen(open){
+    var visible=!!open && state.activeTab!=="generate";
+    elem("reviewSidebar").classList.toggle("open",visible);
+    elem("openReview").setAttribute("aria-expanded",String(visible));
+    elem("openReview").setAttribute("aria-label",visible?"收起批注":"显示批注");
+    if(!visible && !composer.hidden)closeComposer();
+  }
   function paintNavigation(){
     var tab=state.activeTab;
+    var isFocus=state.layout!=="full";
+    elem("appShell").classList.toggle("focus-layout",isFocus);
+    elem("focusLabel").textContent=isFocus?"展开项目导航":"专注写作";
+    elem("toggleFocus").setAttribute("aria-pressed",String(isFocus));
     all("[data-tab]").forEach(function(node){
       var selected=node.dataset.tab===tab;
       node.classList.toggle("active",selected);
@@ -175,8 +189,8 @@
     elem("aiReviewButton").disabled=tab==="generate"||reviewing;
     elem("approveButton").disabled=tab==="generate";
     elem("addCommentButton").disabled=tab==="generate";
+    elem("openReview").disabled=tab==="generate";
     elem("workArea").classList.toggle("is-generation",tab==="generate");
-    elem("reviewSidebar").classList.remove("open");
     elem("pendingCount").textContent=String(pendingCount());
     elem("reviewMobileCount").textContent=String(currentComments().length);
     updateUndoButtons();
@@ -475,7 +489,7 @@
     composer.hidden=false;
     elem("composerQuote").textContent="“"+sel.quote+"”";
     elem("commentInput").value="";
-    elem("reviewSidebar").classList.add("open");
+    setReviewOpen(true);
     elem("commentInput").focus();
     scheduleHighlights();
   }
@@ -523,7 +537,7 @@
     if(!block || block.text.slice(sel.start,sel.end)!==sel.quote){notify("所选文字已变化，请重新选择");return;}
     var candidates=documentTab()==="script"?scriptSuggestions:storyboardSuggestions;
     var known=currentComments().some(function(c){return c.block_id===sel.blockId && c.quote===sel.quote;});
-    if(known){notify("选区已有批注，请查看右侧");elem("reviewSidebar").classList.add("open");return;}
+    if(known){notify("选区已有批注，请查看右侧");setReviewOpen(true);return;}
     var preset=candidates.find(function(c){return c.block_id===sel.blockId && sel.quote.includes(c.quote);});
     var c=preset ? Object.assign({},preset) : {
       block_id:sel.blockId,
@@ -540,7 +554,7 @@
     currentComments().push(c);
     selectedCommentId=c.id;
     selectionToolbar.hidden=true;
-    elem("reviewSidebar").classList.add("open");
+    setReviewOpen(true);
     paintComments();
     saveSoon();
     notify("已添加针对选区的模拟 AI 批注");
@@ -581,7 +595,7 @@
         :"模拟发现 "+addition.length+" 条镜头建议。优先检查空间关系、镜头意图和衔接合理性。";
       reviewFilter="all";
       paintComments();
-      elem("reviewSidebar").classList.add("open");
+      setReviewOpen(true);
       saveSoon();
       notify("已添加 "+addition.length+" 条 AI 批注，原文保持不变");
     },750);
@@ -616,7 +630,12 @@
   elem("addCommentButton").addEventListener("click",startComment);
   elem("selectionComment").addEventListener("click",startComment);
   elem("selectionRewrite").addEventListener("click",reviewSelection);
-  elem("openReview").addEventListener("click",function(){elem("reviewSidebar").classList.toggle("open");});
+  elem("openReview").addEventListener("click",function(){setReviewOpen(!elem("reviewSidebar").classList.contains("open"));});
+  elem("toggleFocus").addEventListener("click",function(){
+    state.layout=state.layout==="full"?"focus":"full";
+    paintNavigation();
+    saveSoon();
+  });
   elem("undoButton").addEventListener("click",undo);
   elem("redoButton").addEventListener("click",redo);
   elem("submitComment").addEventListener("click",submitComment);
@@ -624,13 +643,14 @@
   elem("commentInput").addEventListener("keydown",function(e){
     if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();submitComment();}
   });
-  elem("closeReview").addEventListener("click",function(){elem("reviewSidebar").classList.remove("open");});
+  elem("closeReview").addEventListener("click",function(){setReviewOpen(false);});
   elem("resetDemo").addEventListener("click",function(){
     if(!window.confirm("将清除当前浏览器里保存的 Demo 编辑、批注与修订内容，确认重置吗？"))return;
     localStorage.removeItem(STORAGE_KEY);
     state=initialState();
     undoHistory=[];redoHistory=[];
     currentSelection=null;composerSelection=null;selectedCommentId=null;reviewFilter="all";
+    setReviewOpen(false);
     paintAll();saveNow();notify("已恢复初始示例");
   });
   elem("openAssets").addEventListener("click",function(){elem("assetDrawer").hidden=false;elem("assetBackdrop").hidden=false;});
@@ -645,7 +665,7 @@
     if(e.target.closest && e.target.closest(".block-editable"))window.setTimeout(captureSelection,0);
   });
   document.addEventListener("keydown",function(e){
-    if(e.key==="Escape"){selectionToolbar.hidden=true;closeAssets();if(!composer.hidden)closeComposer();elem("reviewSidebar").classList.remove("open");}
+    if(e.key==="Escape"){selectionToolbar.hidden=true;closeAssets();setReviewOpen(false);}
     if((e.ctrlKey||e.metaKey) && !e.altKey){
       var tag=(e.target.tagName||"").toLowerCase();
       var editable=!!e.target.closest("[contenteditable='true']")||tag==="textarea";
