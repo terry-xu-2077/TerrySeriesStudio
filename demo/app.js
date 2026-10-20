@@ -575,6 +575,7 @@
   }
 
   /* topbar, stage and editor actions */
+  query(".episode.active").addEventListener("click",function(){changeTab("script");});
   all("[data-tab]").forEach(function(btn){btn.addEventListener("click",function(){changeTab(btn.dataset.tab);});});
   all("[data-go]").forEach(function(btn){btn.addEventListener("click",function(){changeTab(btn.dataset.go);});});
   all("[data-filter]").forEach(function(btn){btn.addEventListener("click",function(){reviewFilter=btn.dataset.filter;paintComments();});});
