@@ -57,6 +57,27 @@ export type ReviewSourceBlock = {
   text: string;
 };
 
+/**
+ * A single request containing the WHOLE current document and ALL author
+ * annotations. Annotations are collected locally first; adding one never
+ * triggers a model request on its own.
+ */
+export type ReviewAuthorAnnotation = {
+  id: string;
+  block_id: string;
+  quote: string;
+  comment: string;
+};
+
+export type ReviewBatchRequest = {
+  document_revision: string;
+  blocks: ReviewSourceBlock[];
+  author_annotations: ReviewAuthorAnnotation[];
+  /** Optional compact story/character/location context, supplied by the app. */
+  context?: string;
+};
+
+
 export type ReviewAnchorStatus =
   | "anchored"
   | "stale"
