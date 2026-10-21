@@ -53,7 +53,13 @@
         activeTab:["script","storyboard","generate"].includes(parsed.activeTab)?parsed.activeTab:"script",
         layout:parsed.layout==="full"?"full":"focus",
         documents:parsed.documents,
-        comments:parsed.comments,
+        comments:Object.fromEntries(Object.entries(parsed.comments).map(function(entry){
+          return [entry[0],entry[1].map(function(comment){
+            // Upgrade manually written comments from the previous demo revision.
+            if(comment.author==="human"&&comment.status==="pending")comment.status="draft";
+            return comment;
+          })];
+        })),
         summaries:parsed.summaries || {script:"",storyboard:""},
         approved:parsed.approved || {script:false,storyboard:false},
         revisions:parsed.revisions || {script:1,storyboard:1}
@@ -78,7 +84,23 @@
   function currentComments(){ return state.comments[documentTab()]; }
   function currentRevision(){return "revision-" + state.revisions[documentTab()];}
   function getBlock(id){return currentBlocks().find(function(b){return b.id===id;});}
-  function pendingCount(){return currentComments().filter(function(c){return c.status==="pending";}).length;}
+  function draftCount(){
+    return currentComments().filter(function(c){return c.author==="human"&&c.status==="draft";}).length;
+  }
+  function pendingCount(){
+    return currentComments().filter(function(c){
+      return c.status==="pending"||(c.author==="human"&&c.status==="draft");
+    }).length;
+  }
+  function updateBatchButton(){
+    var fresh=draftCount(),button=elem("aiReviewButton");
+    button.disabled=state.activeTab==="generate"||reviewing||fresh===0;
+    elem("batchHint").textContent=reviewing?"正在统一处理整稿批注…"
+      :fresh?"本轮将一次处理 "+fresh+" 条新批注（连同之前已提交的批注一起作为上下文）"
+      :currentComments().some(function(c){return c.author==="AI";})
+        ?"本轮批改已完成。继续添加批注后可再次提交。"
+        :"尚无待提交的人工批注";
+  }
   function snapshot(){return clone({
     documents:state.documents,comments:state.comments,summaries:state.summaries,
     approved:state.approved,revisions:state.revisions
@@ -186,7 +208,7 @@
     elem("versionLabel").textContent=tab==="generate"?"流程示意":"草稿 V"+state.revisions[tab]+(state.approved[tab]?" · 已批准":"");
     elem("approveButton").classList.toggle("approved",!!state.approved[documentTab()]);
     elem("approveLabel").textContent=state.approved[documentTab()]?"已批准":"批准本稿";
-    elem("aiReviewButton").disabled=tab==="generate"||reviewing;
+    updateBatchButton();
     elem("approveButton").disabled=tab==="generate";
     elem("approveButton").hidden=tab==="generate";
     elem("openReview").disabled=tab==="generate";
@@ -318,7 +340,7 @@
     if(state.activeTab==="generate")return;
     var standard=[],selected=[],draft=[];
     currentComments().forEach(function(comment){
-      if(comment.status!=="pending")return;
+      if(!["pending","draft","submitted"].includes(comment.status))return;
       var anchor=getUniqueAnchor(comment);
       if(anchor.state!=="ok")return;
       var node=query('.block-editable[data-block-id="'+comment.block_id+'"]');
@@ -361,7 +383,7 @@
     if(workRect.width<=0||workRect.height<=0)return;
     reviewRelations.setAttribute("viewBox","0 0 "+workRect.width+" "+workRect.height);
     var sourceXLimit=panelRect.left-22;
-    var matching=currentComments().filter(function(comment){return comment.status==="pending";});
+    var matching=currentComments().filter(function(comment){return ["pending","draft","submitted"].includes(comment.status);});
     matching.forEach(function(comment){
       var card=Array.from(commentsView.querySelectorAll(".comment-card")).find(function(el){return el.dataset.commentId===comment.id;});
       if(!card)return;
@@ -400,9 +422,12 @@
 
   function paintComments(){
     var comments=currentComments();
+    var humanTotal=comments.filter(function(c){return c.author==="human";}).length;
+    var aiTotal=comments.length-humanTotal;
     elem("reviewCount").textContent=comments.length
-      ? comments.length+" 条批注 · "+pendingCount()+" 条待处理"
-      :"当前没有批注";
+      ? humanTotal+" 条人工批注 · "+aiTotal+" 条 AI 结果"
+      :"先标注全文，再让 AI 一次批改";
+    updateBatchButton();
     elem("pendingCount").textContent=String(pendingCount());
     elem("reviewMobileCount").textContent=String(comments.length);
     all(".filter").forEach(function(button){button.classList.toggle("active",button.dataset.filter===reviewFilter);});
@@ -415,22 +440,38 @@
       commentsView.appendChild(banner);
     }
     var order=new Map(currentBlocks().map(function(block,index){return [block.id,index];}));
-    var visible=comments.filter(function(c){return reviewFilter==="all"||c.status==="pending";}).slice().sort(function(a,b){
+    var visible=comments.filter(function(c){
+      return reviewFilter==="all"||c.status==="pending"||(c.author==="human"&&c.status==="draft");
+    }).slice().sort(function(a,b){
+      if(a.author!==b.author)return a.author==="human"?-1:1;
       return (order.has(a.block_id)?order.get(a.block_id):99999)-(order.has(b.block_id)?order.get(b.block_id):99999);
     });
     if(!visible.length){
       commentsView.innerHTML+='<div class="empty-review"><div class="empty-art"><span></span><span></span></div>'
-        +'<h3>'+(reviewFilter==="pending"?"没有待处理的批注":"从一次批注开始")+'</h3>'
-        +'<p>'+(reviewFilter==="pending"?"当前建议已处理完毕。":"选中正文中的一句话添加批注，或让 AI 模拟审查这份文档。")+'</p>'
-        +'<button class="empty-cta" type="button" id="reviewEmptyAction">'+(reviewFilter==="pending"?"查看全部":"✦ 体验 AI 批改")+'</button></div>';
-      elem("reviewEmptyAction").addEventListener("click",function(){if(reviewFilter==="pending"){reviewFilter="all";paintComments();}else runMockReview();});
+        +'<h3>'+(reviewFilter==="pending"?"没有待处理的批注":"先批注，再统一批改")+'</h3>'
+        +'<p>'+(reviewFilter==="pending"?"目前没有需要处理的批注。":"先通读整篇，选中需要修改的文字写下批注。全部写完后，点击上方「按批注 AI 批改全文」。")+'</p>'
+        +'<button class="empty-cta" type="button" id="reviewEmptyAction">'+(reviewFilter==="pending"?"查看全部":"开始写批注")+'</button></div>';
+      elem("reviewEmptyAction").addEventListener("click",function(){
+        if(reviewFilter==="pending"){reviewFilter="all";paintComments();}
+        else {var n=editor.querySelector(".block-editable");if(n)n.scrollIntoView({behavior:"smooth",block:"center"});notify("请在正文中选中文字，再点击「添加批改」");}
+      });
       scheduleHighlights();
       return;
     }
+    var displayedSection="";
     visible.forEach(function(c){
+      if(c.author!==displayedSection){
+        displayedSection=c.author;
+        var heading=document.createElement("div");
+        heading.className="review-section-heading";
+        heading.textContent=c.author==="human"?"我的批注 · 全部写完后统一提交":"AI 批改结果 · 统一返回";
+        commentsView.appendChild(heading);
+      }
       var anchor=getUniqueAnchor(c);
       var card=document.createElement("article");
-      card.className="comment-card"+(c.id===selectedCommentId?" selected":"")+(c.status!=="pending"?" resolved":"");
+      card.className="comment-card"+(c.author==="human"?" human-comment":" ai-comment")
+        +(c.id===selectedCommentId?" selected":"")
+        +(["accepted","resolved","ignored"].includes(c.status)?" resolved":"");
       card.dataset.commentId=c.id;
       card.tabIndex=0;
       card.setAttribute("aria-label",(c.author==="AI"?"AI 批改结果":"人工批注")+"："+c.comment);
@@ -438,13 +479,18 @@
       var tag=c.severity==="important"?"需关注":"可优化";
       var head='<div class="card-heading"><div class="review-avatar '+(c.author==="AI"?"":"human")+'">'+avatar+'</div>'
         +'<span class="card-author">'+(c.author==="AI"?"AI 批改结果":"我的批注")+'</span>'
-        +(c.author==="AI"?'<span class="card-severity '+(c.severity==="important"?"":"suggestion")+'">'+tag+'</span>':'')+'</div>';
+        +(c.author==="AI"?'<span class="card-severity '+(c.severity==="important"?"":"suggestion")+'">'+tag+'</span>'
+          :'<span class="human-status">'+(c.status==="draft"?"待统一提交":"已用于批改")+'</span>')+'</div>';
       var anchorNote=anchor.state==="ok"?"":'<div class="orphan-note">原文位置'+(anchor.state==="ambiguous"?"存在重复，无法确定":anchor.state==="missing"?"不存在":"已变化，请重新定位")+'；不会自动修改文字。</div>';
       var quote='<div class="comment-quote">“'+escapeHTML(c.quote)+'”</div>';
       var copy='<p class="comment-copy">'+escapeHTML(c.comment)+'</p>';
       var hasReplacement=c.replacement!==undefined && c.replacement!=="";
       var decision="",archive="",actions="";
-      if(c.status==="pending"){
+      if(c.author==="human"){
+        actions=c.status==="draft"
+          ?'<div class="comment-status">批注已保存，尚未提交 AI · <button type="button" class="text-action" data-comment-action="remove">删除</button></div>'
+          :'<div class="comment-status">已纳入一次整稿批改，原批注保留</div>';
+      }else if(c.status==="pending"){
         decision='<section class="review-decision" aria-label="待人工确认的批改内容">'
           +'<div class="replacement-label"><span class="decision-dot" aria-hidden="true"></span>'
           +(hasReplacement?"待确认修改":"待处理批改")+'</div>'
@@ -494,6 +540,14 @@
   function applyCommentAction(id,action){
     var c=currentComments().find(function(x){return x.id===id;});
     if(!c)return;
+    if(action==="remove"){
+      if(c.author!=="human"||c.status!=="draft")return;
+      recordBefore();
+      state.comments[documentTab()]=currentComments().filter(function(item){return item.id!==id;});
+      selectedCommentId=null;paintComments();saveSoon();notify("已删除未提交的批注");
+      return;
+    }
+    if(c.author!=="AI")return;
     if(action==="accept"){
       var matched=getUniqueAnchor(c);
       if(matched.state!=="ok"){notify("原文已变化或有重复，无法自动应用建议");paintComments();return;}
@@ -584,14 +638,14 @@
     }
     recordBefore();
     var c={id:newId(),author:"human",block_id:sel.blockId,quote:sel.quote,
-      comment:text,severity:"suggestion",status:"pending",source_revision:currentRevision()};
+      comment:text,severity:"suggestion",status:"draft",source_revision:currentRevision()};
     currentComments().push(c);
     selectedCommentId=c.id;
     closeComposer();
     setReviewOpen(true);
     paintComments();
     saveSoon();
-    notify("批注已添加");
+    notify("批注已保存；继续标注全文，完成后一次性提交 AI");
   }
 
   var scriptSuggestions=[
@@ -606,43 +660,66 @@
   ];
 
   function runMockReview(){
-    if(reviewing)return;
-    if(state.activeTab==="generate"){notify("生成阶段暂不支持文本审查");return;}
+    if(reviewing||state.activeTab==="generate")return;
     var tab=documentTab(),revision=currentRevision();
-    reviewing=true;
-    elem("aiReviewButton").disabled=true;
-    elem("aiReviewLabel").textContent="审查中…";
+    // One request for the whole document: collect ALL human notes in original order.
+    var allNotes=state.comments[tab].filter(function(c){
+      return c.author==="human"&&(c.status==="draft"||c.status==="submitted");
+    });
+    var newNotes=allNotes.filter(function(c){return c.status==="draft";});
+    if(!newNotes.length){notify("请先在全文中添加人工批注，再统一提交 AI");return;}
+    var originalBlocks=clone(state.documents[tab]);
+    var sourceNotes=clone(allNotes);
+    var sourceSignature=JSON.stringify(allNotes.map(function(c){return [c.id,c.comment,c.quote,c.status];}));
+    var batchId=newId();
+    reviewing=true;updateBatchButton();
     selectionToolbar.hidden=true;
-    notify("正在模拟 AI 批改（不会调用付费 API）");
+    notify("正在模拟一次性批改整篇 "+(tab==="script"?"剧本":"分镜")+"（共 "+allNotes.length+" 条人工批注）");
     window.setTimeout(function(){
       reviewing=false;
-      elem("aiReviewButton").disabled=false;
-      elem("aiReviewLabel").textContent="AI 批改全文";
-      if(documentTab()!==tab || currentRevision()!==revision){
-        notify("审查期间文档发生变化，结果未应用；可重新审查");
+      var currentSignature=JSON.stringify(state.comments[tab].filter(function(c){
+        return c.author==="human"&&(c.status==="draft"||c.status==="submitted");
+      }).map(function(c){return [c.id,c.comment,c.quote,c.status];}));
+      var unchanged=state.activeTab===tab&&currentRevision()===revision&&
+        JSON.stringify(state.documents[tab])===JSON.stringify(originalBlocks)&&
+        currentSignature===sourceSignature;
+      if(!unchanged){
+        updateBatchButton();
+        notify("批改期间正文或人工批注已变化，本轮模拟结果未应用，请重新提交");
         return;
       }
-      var candidates=tab==="script"?scriptSuggestions:storyboardSuggestions;
-      var addition=[];
-      candidates.forEach(function(s){
-        var block=getBlock(s.block_id);
-        if(!block || !block.text.includes(s.quote) || block.text.indexOf(s.quote)!==block.text.lastIndexOf(s.quote))return;
-        var duplicate=currentComments().some(function(c){return c.block_id===s.block_id && c.quote===s.quote;});
-        if(!duplicate)addition.push(Object.assign({},s,{
-          id:newId(),author:"AI",status:"pending",source_revision:revision
-        }));
+      // Demonstration only: known quotes use canned improvements; arbitrary
+      // human notes get a clearly labelled, non-rewriting acknowledgement.
+      var presets=tab==="script"?scriptSuggestions:storyboardSuggestions;
+      var additions=[];
+      sourceNotes.filter(function(note){return note.status==="draft";}).forEach(function(note){
+        var block=originalBlocks.find(function(b){return b.id===note.block_id;});
+        if(!block||!block.text.includes(note.quote))return;
+        var same=presets.find(function(p){
+          return p.block_id===note.block_id&&p.quote===note.quote;
+        });
+        var result={
+          id:newId(),author:"AI",block_id:note.block_id,quote:note.quote,
+          comment:same?"针对你的批注「"+note.comment+"」，"+same.comment
+            :"已收到你的批注「"+note.comment+"」。本 Demo 不连接真实模型，因此无法根据任意意见生成可信改写；实际接入 AI 时会一起处理整篇内容。",
+          severity:same?same.severity:"suggestion",
+          status:"pending",source_revision:revision,batch_id:batchId,source_note_id:note.id
+        };
+        if(same&&same.replacement!==undefined)result.replacement=same.replacement;
+        additions.push(result);
       });
-      if(!addition.length){notify("没有新增的模拟批改结果（修改示例正文或重置后可重新体验）");return;}
+      if(!additions.length){
+        updateBatchButton();notify("所有批注定位都已失效，请检查原文后重新提交");return;
+      }
       recordBefore();
-      state.comments[tab].push.apply(state.comments[tab],addition);
-      state.summaries[tab]=tab==="script"
-        ?"模拟发现 "+addition.length+" 条可讨论的局部问题。优先保留人物表达，避免机械润色。"
-        :"模拟发现 "+addition.length+" 条镜头建议。优先检查空间关系、镜头意图和衔接合理性。";
+      state.comments[tab].forEach(function(c){if(c.author==="human"&&c.status==="draft")c.status="submitted";});
+      state.comments[tab].push.apply(state.comments[tab],additions);
+      state.summaries[tab]="模拟一次性接收 "+sourceNotes.length+" 条人工批注，针对 "+additions.length+" 条新批注给出反馈。不会自动改写原文。";
       reviewFilter="all";
       paintComments();
       setReviewOpen(true);
       saveSoon();
-      notify("已添加 "+addition.length+" 条 AI 批注，原文保持不变");
+      notify("整稿批改完成，已统一返回 "+additions.length+" 条模拟结果");
     },750);
   }
   function approveCurrent(){
