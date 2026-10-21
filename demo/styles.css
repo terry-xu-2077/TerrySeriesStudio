@@ -474,3 +474,47 @@
 .workspace .review-sidebar .review-footer{
   background:var(--studio-review-rail);
 }
+
+
+/* ── One batch after the creator annotates the whole document ── */
+.workspace .review-sidebar .review-actions{
+  display:flex;flex-direction:column;align-items:stretch;gap:9px;
+  padding:11px 17px 15px;
+}
+.batch-guidance{font-size:11px;line-height:1.75;color:#74798c}
+.workspace .review-sidebar .review-actions .review-ai-action{
+  width:100%;height:38px;justify-content:center;
+  font-size:12px;letter-spacing:.01em;
+  background:#5e62b3;color:#fff;border-color:#5e62b3;
+}
+.workspace .review-sidebar .review-actions .review-ai-action:hover:not(:disabled){
+  color:#fff;background:#5156a5;border-color:#5156a5;
+}
+.workspace .review-sidebar .review-actions .review-ai-action:disabled{
+  opacity:1;background:#eef0f6;color:#a4a7b7;border-color:#e7e8f0;
+  box-shadow:none;cursor:not-allowed;
+}
+.workspace .review-sidebar .review-action-hint{
+  white-space:normal;line-height:1.5;font-size:10px;color:#9b9eaf;
+}
+.review-section-heading{
+  font-size:10px;letter-spacing:.055em;font-weight:760;color:#9398a9;
+  margin:5px 2px 11px;display:flex;align-items:center;gap:9px;
+}
+.review-section-heading:not(:first-child){margin-top:22px}
+.review-section-heading:after{content:"";height:1px;flex:1;background:#e7e8ee}
+.workspace .review-sidebar .comment-card.human-comment{
+  border-color:#e4e6f0;background:#fafbfe;
+}
+.workspace .review-sidebar .human-comment .human-status{
+  margin-left:auto;border-radius:4px;padding:3px 6px;
+  color:#747c9d;background:#eceef7;font-size:10px;font-weight:670;
+}
+.workspace .review-sidebar .human-comment .comment-status{
+  margin-top:13px;color:#9aa0ae;font-size:10px;line-height:1.7;
+}
+.workspace .review-sidebar .human-comment .text-action{color:#777caa;font-size:10px}
+.workspace .review-sidebar .comment-card.ai-comment .review-decision{
+  /* Charcoal confirmation card remains reserved for AI output, not author notes. */
+  background:#363b46;
+}
