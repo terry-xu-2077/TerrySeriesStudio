@@ -79,10 +79,14 @@
 
           <aside class="review-sidebar" id="reviewSidebar" aria-label="正文关联批改意见">
             <div class="review-header">
-              <div><div class="review-heading">批改结果</div><div class="review-subheading" id="reviewCount">当前没有批注</div></div>
+              <div><div class="review-heading">批注与批改</div><div class="review-subheading" id="reviewCount">当前没有批注</div></div>
               <button type="button" class="icon-button mobile-close" id="closeReview" aria-label="收起右侧批改意见" title="收起批改意见">×</button>
             </div>
-            <div class="review-actions"><button type="button" class="review-ai-action" id="aiReviewButton"><span class="star">✦</span> <span id="aiReviewLabel">AI 批改全文</span></button><span class="review-action-hint">逐条审核 · 人工确认</span></div>
+            <div class="review-actions">
+              <div class="batch-guidance" id="batchGuidance">先通读全文添加批注，完成后再统一交给 AI。</div>
+              <button type="button" class="review-ai-action" id="aiReviewButton" disabled><span class="star">✦</span> <span id="aiReviewLabel">按批注 AI 批改全文</span></button>
+              <div class="review-action-hint" id="batchHint">尚无待提交的人工批注</div>
+            </div>
             <div class="review-filters">
               <button type="button" class="filter active" data-filter="all">全部</button>
               <button type="button" class="filter" data-filter="pending">待处理 <span id="pendingCount">0</span></button>
@@ -99,10 +103,10 @@
     <button type="button" id="selectionComment">＋ 添加批改</button>
   </div>
   <div id="commentComposer" class="comment-composer selection-comment-popup" role="dialog" aria-label="添加批改" hidden>
-    <div class="composer-label">添加批改 <button type="button" class="composer-close" id="cancelComment" aria-label="关闭批改输入">×</button></div>
+    <div class="composer-label">添加批注 <button type="button" class="composer-close" id="cancelComment" aria-label="关闭批改输入">×</button></div>
     <div class="composer-quote" id="composerQuote"></div>
-    <textarea id="commentInput" rows="3" placeholder="针对所选文字写下意见……"></textarea>
-    <div class="composer-actions"><span class="composer-shortcut">Ctrl + Enter 提交</span><button id="submitComment" class="accent-button" type="button">添加</button></div>
+    <textarea id="commentInput" rows="3" placeholder="把这处希望 AI 怎么修改写下来……"></textarea>
+    <div class="composer-actions"><span class="composer-shortcut">Ctrl + Enter 保存</span><button id="submitComment" class="accent-button" type="button">保存批注</button></div>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
