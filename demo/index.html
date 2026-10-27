@@ -14,7 +14,9 @@
 
     <header class="bar" id="topbar">
       <div class="bar-left">
-        <div class="mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="mark" aria-hidden="true"><span class="mark-letter">T</span></div>
+        <div class="brand-word">Terry<strong>Series</strong></div>
+        <div class="bar-divider" aria-hidden="true"></div>
         <div class="crumb">
           <span class="crumb-muted">异星边境</span>
           <span class="crumb-sep">·</span>
@@ -28,17 +30,20 @@
         <span class="rev-indicator" id="revIndicator">定稿修订 r1</span>
       </div>
       <div class="bar-right">
+        <span class="demo-tag">DEMO</span>
         <span class="bar-btn" id="wordCountBtn" title="字数统计">
           <span id="wordCount">0</span> 字
         </span>
-        <button type="button" class="bar-btn" id="resetDemo" title="清除本地演示内容并恢复示例">
-          ⟲ 重置
+        <button type="button" class="icon-btn" id="resetDemo" title="清除本地演示内容并恢复示例" aria-label="重置示例">
+          <svg class="i-svg" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.5-6.36M21 12a9 9 0 0 1-15.5 6.36"/><path d="M3 4v5h5"/><path d="M21 20v-5h-5"/></svg>
         </button>
         <button type="button" class="bar-btn" id="toggleChat" aria-pressed="true" title="收起/展开 AI 共写面板">
-          <span class="bar-btn-icon">✦</span> <span id="toggleChatLabel">共写面板</span>
+          <svg class="i-svg bar-btn-icon" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7A2.5 2.5 0 0 1 17.5 16H10l-4.2 3.4a.6.6 0 0 1-1-.47V16h-.3A2.5 2.5 0 0 1 2 13.5v0"/></svg>
+          <span id="toggleChatLabel">共写面板</span>
         </button>
         <button type="button" class="approve-btn" id="approveBtn" title="批准当前版本，作为可交付定稿">
-          <span class="approve-icon">✓</span> <span id="approveLabel">批准本稿</span>
+          <svg class="i-svg approve-icon" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>
+          <span id="approveLabel">批准本稿</span>
         </button>
       </div>
     </header>
@@ -62,30 +67,39 @@
 
       <aside class="chat" id="chatPanel" aria-label="AI 共写面板">
         <div class="chat-head">
-          <div class="chat-title">与 AI 共写</div>
-          <button type="button" class="chat-collapse" id="collapseChat" aria-label="收起共写面板" title="收起">›</button>
+          <div class="chat-title"><span class="chat-title-dot" aria-hidden="true"></span>与 AI 共写</div>
+          <button type="button" class="icon-btn icon-btn-ghost" id="collapseChat" aria-label="收起共写面板" title="收起">
+            <svg class="i-svg" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
         </div>
         <div class="chat-threads" id="chatThreads"></div>
         <div class="chat-composer">
           <div class="composer-ref" id="composerRef" hidden>
-            <div class="composer-ref-label">引用选中内容 <button type="button" id="clearRef" aria-label="取消引用">×</button></div>
+            <div class="composer-ref-label">引用选中内容 <button type="button" id="clearRef" aria-label="取消引用"><svg class="i-svg" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
             <div class="composer-ref-quote" id="composerRefQuote"></div>
           </div>
           <textarea id="chatInput" rows="2" placeholder="随便聊聊这段剧本——人物动机、节奏、要不要改这句……"></textarea>
           <div class="composer-row">
             <button type="button" class="composer-link" id="switchGeneral" hidden>↩ 不针对这段，随便聊</button>
             <span class="composer-hint" id="composerHint">Enter 发送 · Shift+Enter 换行</span>
-            <button type="button" class="send-btn" id="sendBtn">发送</button>
+            <button type="button" class="send-btn" id="sendBtn" aria-label="发送">
+              <svg class="i-svg" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            </button>
           </div>
         </div>
       </aside>
 
-      <button type="button" class="chat-reopen" id="reopenChat" hidden title="展开共写面板">✦</button>
+      <button type="button" class="chat-reopen" id="reopenChat" hidden title="展开共写面板">
+        <svg class="i-svg" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7A2.5 2.5 0 0 1 17.5 16H10l-4.2 3.4a.6.6 0 0 1-1-.47V16h-.3A2.5 2.5 0 0 1 2 13.5v0"/></svg>
+      </button>
     </div>
   </div>
 
   <div id="selectBubble" class="select-bubble" hidden>
-    <button type="button" id="askAiBtn">💬 跟 AI 聊这段</button>
+    <button type="button" id="askAiBtn">
+      <span class="select-bubble-icon"><svg class="i-svg" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7A2.5 2.5 0 0 1 17.5 16H10l-4.2 3.4a.6.6 0 0 1-1-.47V16h-.3A2.5 2.5 0 0 1 2 13.5v0"/></svg></span>
+      跟 AI 聊这段
+    </button>
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>

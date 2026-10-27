@@ -302,8 +302,16 @@
 
   /* ───────────────────────── chat panel ───────────────────────── */
 
-  function openChatPanel() { layout.classList.remove("chat-collapsed"); elem("toggleChat").setAttribute("aria-pressed", "true"); }
-  function closeChatPanel() { layout.classList.add("chat-collapsed"); elem("toggleChat").setAttribute("aria-pressed", "false"); }
+  function openChatPanel() {
+    layout.classList.remove("chat-collapsed");
+    elem("toggleChat").setAttribute("aria-pressed", "true");
+    elem("reopenChat").hidden = true;
+  }
+  function closeChatPanel() {
+    layout.classList.add("chat-collapsed");
+    elem("toggleChat").setAttribute("aria-pressed", "false");
+    elem("reopenChat").hidden = false;
+  }
 
   function setActiveThread(threadId) {
     state.activeThreadId = threadId;
@@ -358,12 +366,13 @@
 
   function renderThreadCard(thread) {
     var card = document.createElement("article");
+    var pending = threadHasPendingRevision(thread);
     card.className = "thread" + (thread.id === state.activeThreadId ? " active" : "");
     card.dataset.threadId = thread.id;
+    card.dataset.pending = String(pending);
     if (thread.quote) {
       var head = document.createElement("div");
       head.className = "thread-quote-head";
-      var pending = threadHasPendingRevision(thread);
       head.innerHTML = '<span class="quote-mark">“</span><span>' + escapeHTML(thread.quote) + '</span>'
         + '<span class="thread-status-chip">' + (pending ? "待确认" : "讨论中") + '</span>';
       card.appendChild(head);
@@ -775,5 +784,8 @@
   elem("canvasScroll").addEventListener("scroll", scheduleGutter, { passive: true });
 
   renderAll();
+  // On narrow screens the chat panel is a full-width overlay; start collapsed
+  // so the script is visible first instead of hidden behind it on load.
+  if (window.innerWidth <= 980) closeChatPanel();
   saveNow();
 })();
