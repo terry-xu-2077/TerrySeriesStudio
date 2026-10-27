@@ -3,123 +3,91 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
-  <title>TerrySeriesStudio · 剧集工作室交互 Demo</title>
-  <meta name="description" content="Word 式剧本与分镜 AI 批注交互 Demo，无需后端">
+  <meta name="color-scheme" content="light dark">
+  <title>TerrySeriesStudio · 沉浸式共写 Demo</title>
+  <meta name="description" content="剧本沉浸式写作 + AI 共写对话 Demo，纯前端模拟，无需后端">
   <link rel="stylesheet" href="./styles.css">
   <script src="./app.js" defer></script>
 </head>
 <body>
-  <div class="app-shell focus-layout" id="appShell">
-    <header class="topbar">
-      <div class="brand" aria-label="剧集工作室">
-        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
-        <div class="brand-name">TERRY <strong>SERIES</strong> <span>STUDIO</span></div>
+  <div class="shell" id="shell">
+
+    <header class="bar" id="topbar">
+      <div class="bar-left">
+        <div class="mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="crumb">
+          <span class="crumb-muted">异星边境</span>
+          <span class="crumb-sep">·</span>
+          <span>EP01 第一集</span>
+          <span class="crumb-sep">·</span>
+          <span class="crumb-muted">剧本</span>
+        </div>
       </div>
-      <div class="topbar-divider"></div>
-      <div class="topbar-location"><span class="topbar-muted">工作室</span><span class="tiny-chevron">›</span><span>异星边境</span><span class="tiny-chevron">›</span><span class="location-episode">EP01</span></div>
-      <nav class="topbar-stages" role="tablist" aria-label="工作区切换">
-        <button type="button" class="stage-tab active" role="tab" aria-selected="true" data-tab="script"><span>01</span> 剧本</button>
-        <button type="button" class="stage-tab" role="tab" aria-selected="false" data-tab="storyboard"><span>02</span> 分镜</button>
-        <button type="button" class="stage-tab" role="tab" aria-selected="false" data-tab="generate"><span>03</span> 生成</button>
-      </nav>
-      <span class="demo-pill">交互原型</span>
-      <div class="topbar-spacer"></div>
-      <button class="topbar-btn layout-switch" id="toggleFocus" type="button" aria-pressed="true" title="切换专注写作与完整工作区"><span class="layout-switch-icon" aria-hidden="true">☰</span><span id="focusLabel">展开项目导航</span></button>
-      <button class="topbar-btn" id="openAssets" type="button"><span class="btn-glyph">▧</span> 资产库</button>
-      <button class="topbar-btn reset-control" id="resetDemo" type="button" title="清除本地演示内容并恢复示例">重置示例</button>
-      <div class="document-finalize"><span class="finalize-divider" aria-hidden="true"></span><button type="button" class="approve-button" id="approveButton" title="批准当前版本，进入下一阶段">✓ <span id="approveLabel">批准本稿</span></button></div>
-      <div class="avatar" title="本地创作者">T</div>
+      <div class="bar-center">
+        <span class="save-indicator" id="saveIndicator"><span class="save-dot"></span><span id="saveText">已自动保存</span></span>
+        <span class="rev-indicator" id="revIndicator">定稿修订 r1</span>
+      </div>
+      <div class="bar-right">
+        <span class="bar-btn" id="wordCountBtn" title="字数统计">
+          <span id="wordCount">0</span> 字
+        </span>
+        <button type="button" class="bar-btn" id="resetDemo" title="清除本地演示内容并恢复示例">
+          ⟲ 重置
+        </button>
+        <button type="button" class="bar-btn" id="toggleChat" aria-pressed="true" title="收起/展开 AI 共写面板">
+          <span class="bar-btn-icon">✦</span> <span id="toggleChatLabel">共写面板</span>
+        </button>
+        <button type="button" class="approve-btn" id="approveBtn" title="批准当前版本，作为可交付定稿">
+          <span class="approve-icon">✓</span> <span id="approveLabel">批准本稿</span>
+        </button>
+      </div>
     </header>
 
-    <div class="body-grid">
-      <aside class="sidebar" aria-label="项目导航">
-        <div class="sidebar-section-label">当前项目</div>
-        <div class="project-tile">
-          <div class="project-art" aria-hidden="true"><i></i><i></i><i></i></div>
-          <div class="project-tile-info"><strong>异星边境</strong><span>OFFWORLD FRONTIER</span></div>
+    <div class="layout" id="layout">
+
+      <div class="canvas-scroll" id="canvasScroll">
+        <div class="canvas-inner">
+          <div class="doc-head">
+            <div class="doc-kicker">EPISODE 01 · SCREENPLAY</div>
+            <h1 id="docTitle">第一集 · 回收日</h1>
+            <p class="doc-hint">沉浸式写作：选中一段文字和 AI 讨论怎么改；写到末尾停顿，AI 会在后面给出灰色续写建议，按 Tab 采纳。</p>
+          </div>
+          <div class="gutter-and-doc">
+            <div class="gutter" id="gutter" aria-hidden="true"></div>
+            <div class="doc" id="doc"></div>
+          </div>
+          <div class="doc-foot"><span>— END —</span></div>
         </div>
-        <div class="sidebar-section-head"><span>第一季</span><span class="sidebar-count">01 / 10</span></div>
-        <button class="episode active" type="button"><span class="episode-indicator"></span><span><strong>EP 01</strong><small>剧本创作中</small></span><span class="episode-arrow">›</span></button>
-        <div class="episode inactive"><span class="episode-indicator"></span><span><strong>EP 02</strong><small>暂未开始</small></span></div>
-        <div class="episode inactive"><span class="episode-indicator"></span><span><strong>EP 03</strong><small>暂未开始</small></span></div>
-        <div class="sidebar-bottom">
-          <div class="info-icon">i</div>
-          <p>当前为独立前端 Demo。AI 意见与生成状态均为模拟数据。</p>
+      </div>
+
+      <aside class="chat" id="chatPanel" aria-label="AI 共写面板">
+        <div class="chat-head">
+          <div class="chat-title">与 AI 共写</div>
+          <button type="button" class="chat-collapse" id="collapseChat" aria-label="收起共写面板" title="收起">›</button>
+        </div>
+        <div class="chat-threads" id="chatThreads"></div>
+        <div class="chat-composer">
+          <div class="composer-ref" id="composerRef" hidden>
+            <div class="composer-ref-label">引用选中内容 <button type="button" id="clearRef" aria-label="取消引用">×</button></div>
+            <div class="composer-ref-quote" id="composerRefQuote"></div>
+          </div>
+          <textarea id="chatInput" rows="2" placeholder="随便聊聊这段剧本——人物动机、节奏、要不要改这句……"></textarea>
+          <div class="composer-row">
+            <button type="button" class="composer-link" id="switchGeneral" hidden>↩ 不针对这段，随便聊</button>
+            <span class="composer-hint" id="composerHint">Enter 发送 · Shift+Enter 换行</span>
+            <button type="button" class="send-btn" id="sendBtn">发送</button>
+          </div>
         </div>
       </aside>
 
-      <main class="main-area">
-        <div class="workspace" id="workArea">
-          <svg class="review-relations" id="reviewRelations" aria-hidden="true" preserveAspectRatio="none"></svg>
-          <section class="editor-main" aria-label="文档编辑器">
-            <div class="editing-toolbar">
-              <div class="toolbar-title"><span id="toolbarScope">剧本编辑</span><span class="toolbar-divider">/</span><span id="toolbarDoc">初稿</span></div>
-              <span class="saved-state" id="saveStatus"><span class="save-dot"></span> 所有更改已保存</span>
-              <div class="toolbar-actions">
-                <button type="button" class="icon-button" id="undoButton" title="撤销（Ctrl+Z）" aria-label="撤销">↶</button>
-                <button type="button" class="icon-button" id="redoButton" title="重做（Ctrl+Y）" aria-label="重做">↷</button>
-                <div class="toolbar-separator"></div>
-                <button type="button" class="review-toggle" id="openReview" aria-controls="reviewSidebar" aria-label="打开审阅浮窗" aria-expanded="false"><span class="review-icon" aria-hidden="true">☷</span> <span class="review-toggle-label">审阅</span> <span class="review-counter" id="reviewMobileCount">0</span></button>
-              </div>
-            </div>
-
-            <div class="page-scroller" id="pageScroller">
-              <article class="paper" id="paper">
-                <div class="doc-topline"><span id="docKicker">EPISODE 01 · SCREENPLAY</span><span class="version" id="versionLabel">草稿 V1</span></div>
-                <h1 id="docTitle">第一集 · 回收日</h1>
-                <p class="document-subtitle" id="docSubtitle">剧本初稿 · 可直接点击文字编辑，也可选择一段文字添加批注。</p>
-                <div class="paper-rule"></div>
-                <div id="editorBlocks" class="editor-blocks"></div>
-                <div class="paper-end"><span>— END —</span></div>
-              </article>
-              <div class="page-hint">选择文字以添加批注 <span class="hint-separator">·</span> Ctrl+Z 撤销 <span class="hint-separator">·</span> 此 Demo 的修改保存在浏览器内</div>
-            </div>
-          </section>
-
-          <aside class="review-sidebar" id="reviewSidebar" aria-label="正文关联批改意见">
-            <div class="review-header">
-              <div><div class="review-heading">批注与批改</div><div class="review-subheading" id="reviewCount">当前没有批注</div></div>
-              <button type="button" class="icon-button mobile-close" id="closeReview" aria-label="收起右侧批改意见" title="收起批改意见">×</button>
-            </div>
-            <div class="review-actions">
-              <div class="batch-guidance" id="batchGuidance">先通读全文添加批注，完成后再统一交给 AI。</div>
-              <button type="button" class="review-ai-action" id="aiReviewButton" disabled><span class="star">✦</span> <span id="aiReviewLabel">按批注 AI 批改全文</span></button>
-              <div class="review-action-hint" id="batchHint">尚无待提交的人工批注</div>
-            </div>
-            <div class="review-filters">
-              <button type="button" class="filter active" data-filter="all">全部</button>
-              <button type="button" class="filter" data-filter="pending">待处理 <span id="pendingCount">0</span></button>
-            </div>
-            <div id="reviewItems" class="review-items"></div>
-            <div class="review-footer"><span class="review-footer-icon">✦</span> 批注由你决定是否采纳，AI 不会直接修改原文。</div>
-          </aside>
-        </div>
-      </main>
+      <button type="button" class="chat-reopen" id="reopenChat" hidden title="展开共写面板">✦</button>
     </div>
   </div>
 
-  <div id="selectionToolbar" class="selection-toolbar" hidden>
-    <button type="button" id="selectionComment">＋ 添加批改</button>
+  <div id="selectBubble" class="select-bubble" hidden>
+    <button type="button" id="askAiBtn">💬 跟 AI 聊这段</button>
   </div>
-  <div id="commentComposer" class="comment-composer selection-comment-popup" role="dialog" aria-label="添加批改" hidden>
-    <div class="composer-label">添加批注 <button type="button" class="composer-close" id="cancelComment" aria-label="关闭批改输入">×</button></div>
-    <div class="composer-quote" id="composerQuote"></div>
-    <textarea id="commentInput" rows="3" placeholder="把这处希望 AI 怎么修改写下来……"></textarea>
-    <div class="composer-actions"><span class="composer-shortcut">Ctrl + Enter 保存</span><button id="submitComment" class="accent-button" type="button">保存批注</button></div>
-  </div>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <div class="drawer-backdrop" id="assetBackdrop" hidden></div>
-  <aside class="asset-drawer" id="assetDrawer" aria-label="资产库预览" hidden>
-    <div class="drawer-header"><div><span class="drawer-eyebrow">PROJECT LIBRARY</span><h2>项目资产</h2></div><button class="icon-button" id="closeAssets" type="button" aria-label="关闭资产库">×</button></div>
-    <div class="drawer-description">角色和场景资产会在后续开发中与剧本、分镜和 ComfyUI 引用绑定。这里仅展示概念结构。</div>
-    <div class="drawer-group-title">角色 <span>CHARACTERS</span></div>
-    <div class="asset-card"><div class="asset-thumb character-thumb">T</div><div><strong>特瑞</strong><small>人物描述 · 参考图片 · 声音样本</small><em>待导入正式资产</em></div></div>
-    <div class="asset-card"><div class="asset-thumb character-thumb second">7</div><div><strong>小七</strong><small>人物描述 · 参考图片 · 声音样本</small><em>待导入正式资产</em></div></div>
-    <div class="drawer-group-title">场景 <span>LOCATIONS</span></div>
-    <div class="asset-card"><div class="asset-thumb scene-thumb">⌂</div><div><strong>基地内部</strong><small>场景描述 · 环境参考图片</small><em>待导入正式资产</em></div></div>
-    <div class="drawer-note">此演示不包含真实角色图、配音和素材上传，避免将占位资产误认为正式设定。</div>
-  </aside>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
